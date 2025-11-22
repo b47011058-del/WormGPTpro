@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#000000">
+    <meta name="robots" content="noindex, nofollow">
+    
     <title>WormGPT v2.5 (Unlimited)</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +20,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* نفس التنسيق الأصلي لم يتم تغييره */
+        /* ========================================= */
+        /* CSS Variables & Reset                     */
+        /* ========================================= */
         :root {
             --bg-core: #050505;
             --accent-primary: #ff0033;
@@ -41,92 +45,164 @@
             user-select: none;
         }
 
-        .msg-bubble { user-select: text; -webkit-user-select: text; }
+        .msg-bubble {
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* Scanlines Effect */
         body::after {
             content: ""; position: absolute; inset: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
             background-size: 100% 4px; pointer-events: none; z-index: 9999; opacity: 0.6;
         }
 
+        /* ========================================= */
+        /* Components                                */
+        /* ========================================= */
         #chat-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
 
+        /* Header */
         .chat-header {
             padding: calc(10px + var(--safe-top)) 15px 10px 15px;
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(10, 0, 0, 0.95); border-bottom: 1px solid #330000;
             backdrop-filter: blur(10px);
+            touch-action: manipulation;
         }
         #title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); }
         .header-btn { 
             width: 38px; height: 38px; background: rgba(255,255,255,0.03); 
             border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; 
             display: flex; align-items: center; justify-content: center; cursor: pointer;
+            min-width: 44px; min-height: 44px;
         }
 
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 30px; scroll-behavior: smooth; }
+        /* Chat Box */
+        #chat-box { 
+            flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 30px; scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+        }
 
+        /* Welcome Screen */
         #welcome-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.8; overflow-y: auto; padding: 20px 0; }
         #welcome-screen i.main-icon { font-size: 4rem; color: var(--accent-primary); margin-bottom: 20px; animation: pulse 3s infinite; }
         @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
 
         .suggestions { 
-            display: grid; gap: 10px; width: 100%; max-width: 650px; margin-top: 30px; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            display: grid; 
+            gap: 10px; 
+            width: 100%; 
+            max-width: 650px; 
+            margin-top: 30px; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         }
+        
         .sug-card { 
             background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px; 
             border-radius: 8px; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; 
             cursor: pointer; transition: 0.2s;
+            min-height: 44px;
         }
         .sug-card:hover { background: rgba(255, 0, 51, 0.1); border-color: var(--accent-primary); }
 
+        /* Messages */
         .message { max-width: 92%; margin-bottom: 20px; display: flex; flex-direction: column; position: relative; }
-        .msg-bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word; }
-        .msg-user { align-self: flex-end; margin-left: auto; }
-        .msg-user .msg-bubble { background: linear-gradient(145deg, #80001a, #4d000f); color: #fff; border-bottom-left-radius: 2px; }
-        .msg-bot { align-self: flex-start; margin-right: auto; width: 100%; }
-        .msg-bot .msg-bubble { background: #111; border: 1px solid #2a2a2a; color: #ddd; border-bottom-right-radius: 2px; }
+        
+        .msg-bubble {
+            padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;
+            touch-action: manipulation;
+        }
 
-        .msg-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 5px 10px; margin-top: 5px; opacity: 0.7; }
-        .msg-action-btn { background: none; border: none; color: #888; font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: 'Cairo'; }
+        .msg-user { align-self: flex-end; margin-left: auto; }
+        .msg-user .msg-bubble {
+            background: linear-gradient(145deg, #80001a, #4d000f); color: #fff; border-bottom-left-radius: 2px;
+        }
+
+        .msg-bot { align-self: flex-start; margin-right: auto; width: 100%; }
+        .msg-bot .msg-bubble {
+            background: #111; border: 1px solid #2a2a2a; color: #ddd; border-bottom-right-radius: 2px;
+        }
+
+        .msg-actions {
+            display: flex; justify-content: flex-end; gap: 10px; padding: 5px 10px;
+            margin-top: 5px; opacity: 0.7; transition: opacity 0.3s;
+        }
+        .msg-action-btn {
+            background: none; border: none; color: #888; font-size: 0.8rem; cursor: pointer;
+            display: flex; align-items: center; gap: 5px; font-family: 'Cairo';
+            min-height: 32px; padding: 0 8px;
+        }
         .msg-action-btn:hover { color: var(--accent-primary); }
 
         .msg-bot strong { color: #fff; }
         .msg-bot h1, .msg-bot h2, .msg-bot h3 { color: var(--accent-primary); margin-top: 15px; font-family: 'Orbitron'; }
         
         .code-wrapper { margin: 12px 0; border: 1px solid #333; border-radius: 6px; overflow: hidden; background: #1e1e1e; direction: ltr; text-align: left; }
-        .code-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #252525; border-bottom: 1px solid #333; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa; }
-        .copy-code-btn { border: none; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }
+        .code-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+            background: #252525; border-bottom: 1px solid #333; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa;
+        }
+        .copy-code-btn { 
+            border: none; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; 
+            font-size: 0.75rem; padding: 4px 8px; border-radius: 4px;
+            min-height: 28px;
+        }
         .copy-code-btn:hover { background: var(--accent-primary); }
         pre { padding: 15px; overflow-x: auto; margin: 0; }
         code { font-family: 'Fira Code', monospace; font-size: 0.85rem; }
 
+        /* Input Area */
         .input-wrapper { 
             background: rgba(0, 0, 0, 0.95); border-top: 1px solid #222; 
             padding: 10px; padding-bottom: calc(10px + var(--safe-bottom)); 
             position: sticky; bottom: 0; z-index: 30;
+            touch-action: manipulation;
         }
-        .input-box { display: flex; align-items: flex-end; gap: 8px; background: #151515; border-radius: 20px; padding: 6px 12px; border: 1px solid #333; }
+        .input-box { 
+            display: flex; align-items: flex-end; gap: 8px; background: #151515; 
+            border-radius: 20px; padding: 6px 12px; border: 1px solid #333;
+            touch-action: manipulation;
+        }
         .input-box:focus-within { border-color: var(--accent-primary); }
-        textarea { flex: 1; background: transparent; border: none; color: #fff; padding: 8px 0; font-size: 1rem; max-height: 120px; resize: none; font-family: 'Cairo'; }
+        textarea { 
+            flex: 1; background: transparent; border: none; color: #fff; 
+            padding: 8px 0; font-size: 1rem; max-height: 120px; resize: none; 
+            font-family: 'Cairo';
+            touch-action: manipulation;
+        }
         
-        .action-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent; color: #666; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; transition: 0.2s; }
+        .action-btn { 
+            width: 36px; height: 36px; border-radius: 50%; border: none; 
+            background: transparent; color: #666; display: flex; align-items: center; 
+            justify-content: center; font-size: 1.1rem; transition: 0.2s;
+            min-width: 44px; min-height: 44px;
+        }
         .send-btn { background: var(--accent-primary); color: white; margin-bottom: 2px; }
         .send-btn:disabled { background: #333; color: #555; }
         
         .mic-active { color: #ff0033 !important; animation: micPulse 1s infinite; }
         @keyframes micPulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
+        /* Sidebar */
         #sidebar { 
             position: fixed; top: 0; right: 0; width: 80%; max-width: 300px; height: 100%; 
             background: #0a0a0a; border-left: 1px solid #222; z-index: 100; 
             transform: translateX(100%); transition: 0.3s; display: flex; flex-direction: column; 
             padding-top: var(--safe-top);
+            -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
         }
         #sidebar.active { transform: translateX(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px); }
+        .overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; 
+            opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);
+        }
         .overlay.active { opacity: 1; pointer-events: auto; }
-        .chat-item { padding: 15px; border-bottom: 1px solid #151515; color: #999; display: flex; justify-content: space-between; align-items: center; }
+        .chat-item { 
+            padding: 15px; border-bottom: 1px solid #151515; color: #999; 
+            display: flex; justify-content: space-between;
+            min-height: 44px; align-items: center;
+        }
         .chat-item.active { background: #1a0505; color: #fff; border-left: 3px solid var(--accent-primary); }
 
         @media (max-width: 480px) {
@@ -146,29 +222,40 @@
     
     <div id="chat-wrapper">
         <header class="chat-header">
-            <button onclick="app.newChat()" class="header-btn"><i class="fas fa-plus"></i></button>
+            <button onclick="app.newChat()" class="header-btn" aria-label="بدء محادثة جديدة"><i class="fas fa-plus"></i></button>
             <div id="title">WORM<span style="color:#fff">GPT</span></div>
-            <button onclick="app.toggleMenu()" class="header-btn"><i class="fas fa-bars"></i></button>
+            <button onclick="app.toggleMenu()" class="header-btn" aria-label="فتح القائمة"><i class="fas fa-bars"></i></button>
         </header>
         
         <div id="chat-box">
             <div id="welcome-screen">
                 <i class="fas fa-biohazard main-icon"></i>
                 <h2 style="font-family:'Orbitron'">WormGPT v2.5</h2>
-                <p style="color:#666;">Unlimited. Fast. Secure.</p>
+                <p style="color:#666;">مشفر. سريع. آمن.</p>
                 
                 <div class="suggestions">
                     <div class="sug-card" onclick="app.setInput('أكتب كود بايثون لفحص المنافذ المفتوحة (Port Scanner)')">
                         <i class="fab fa-python"></i> <span>فحص الشبكات (Python)</span>
                     </div>
+                
                     <div class="sug-card" onclick="app.setInput('كيفية استغلال ثغرات نواة Linux القديمة')">
                         <i class="fab fa-linux"></i> <span>استغلال ثغرات Kernel</span>
                     </div>
+                
                     <div class="sug-card" onclick="app.setInput('شرح كيفية تنفيذ هجوم SQL Injection يدوياً')">
                         <i class="fas fa-database"></i> <span>حقن قواعد البيانات (SQLi)</span>
                     </div>
+                
                     <div class="sug-card" onclick="app.setInput('كيفية تحليل ملف EXE مشبوه واستخراج النصوص منه')">
                         <i class="fas fa-microchip"></i> <span>الهندسة العكسية</span>
+                    </div>
+                
+                    <div class="sug-card" onclick="app.setInput('كود تشفير وفك تشفير الملفات Ransomware style')">
+                        <i class="fas fa-file-code"></i> <span>تشفير الملفات</span>
+                    </div>
+                
+                    <div class="sug-card" onclick="app.setInput('أدوات كسر حماية WPA2 Handshake')">
+                        <i class="fas fa-wifi"></i> <span>اختراق شبكات WiFi</span>
                     </div>
                 </div>
 
@@ -177,10 +264,10 @@
         
         <div class="input-wrapper">
             <form class="input-box" onsubmit="event.preventDefault(); app.send();">
-                <button type="button" onclick="app.exportChat()" class="action-btn" style="font-size:0.9rem"><i class="fas fa-camera"></i></button>
-                <button type="button" id="btn-mic" onclick="app.toggleVoice()" class="action-btn"><i class="fas fa-microphone"></i></button>
+                <button type="button" onclick="app.exportChat()" class="action-btn" style="font-size:0.9rem" aria-label="تصدير المحادثة"><i class="fas fa-camera"></i></button>
+                <button type="button" id="btn-mic" onclick="app.toggleVoice()" class="action-btn" aria-label="التعرف الصوتي"><i class="fas fa-microphone"></i></button>
                 <textarea id="msg-input" placeholder="اكتب هنا..." rows="1"></textarea>
-                <button type="submit" id="btn-send" class="action-btn send-btn" disabled><i class="fas fa-arrow-up"></i></button>
+                <button type="submit" id="btn-send" class="action-btn send-btn" disabled aria-label="إرسال"><i class="fas fa-arrow-up"></i></button>
             </form>
         </div>
     </div>
@@ -194,11 +281,24 @@
     </nav>
 
     <script>
+        // حماية إضافية
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
+                (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
+        document.addEventListener('dragstart', function(e) { if (e.target.tagName === 'IMG' || e.target.tagName === 'A') { e.preventDefault(); } });
+        document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); return false; } });
+
         const app = (function() {
-            const CONF = { API: "https://yojagahyhoogwtfpvtok.supabase.co/functions/v1/chat", KEY: "wgpt_a9a48e5xh95hujecpbpmdv" };
+            const CONF = { API: "https://yojagahyhoogwtfpvtok.supabase.co/functions/v1/chat", KEY: "wgpt_ex8c2li9w3dil7v3q5z4kj" };
             const state = { history: [], chats: JSON.parse(localStorage.getItem('worm_chats')) || [], activeId: null, recognition: null };
-            // تمت إزالة المتغير processing من هنا لأنه لم يعد مطلوباً للتحقق
-            
+            // ملاحظة: تمت إزالة state.processing للسماح بالإرسال غير المحدود
+
             const els = { 
                 box: document.getElementById('chat-box'), input: document.getElementById('msg-input'), 
                 btnSend: document.getElementById('btn-send'), btnMic: document.getElementById('btn-mic'),
@@ -214,26 +314,28 @@
                 
                 els.input.addEventListener('input', function() {
                     this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                    // الزر يتم تفعيله فقط إذا كان هناك نص
                     els.btnSend.disabled = !this.value.trim();
                 });
                 renderHistory();
+                
+                window.addEventListener('beforeunload', function() {
+                    if (state.recognition && state.isRecording) { state.recognition.stop(); }
+                });
             }
 
-            // ==================================================
-            // الدالة المعدلة للإرسال غير المحدود
-            // ==================================================
+            // ---------------------------------------------------------
+            // التعديل الأساسي هنا: إزالة القيود للسماح بالإرسال المتتابع
+            // ---------------------------------------------------------
             async function send() {
                 const txt = els.input.value.trim();
-                // تم حذف الشرط state.processing للسماح بالإرسال المتعدد
-                if (!txt) return;
+                if (!txt) return; // نمنع الإرسال فقط إذا كان الحقل فارغاً
 
-                // تنظيف الحقل فوراً
-                els.input.value = '';
-                els.input.style.height = 'auto'; // إعادة تعيين ارتفاع الحقل
-                
-                // تعطيل الزر مؤقتاً لأن الحقل فارغ، سيعود للعمل بمجرد الكتابة مرة أخرى
-                els.btnSend.disabled = true; 
+                // لا نتحقق من state.processing هنا للسماح بالتكرار
+
+                // تفريغ الحقل فوراً
+                els.input.value = ''; 
+                els.input.style.height = 'auto';
+                els.btnSend.disabled = true; // تعطيل لحظي حتى يكتب المستخدم مرة أخرى
                 
                 els.welcome.style.display = 'none';
                 appendMsg('user', txt);
@@ -245,16 +347,16 @@
                     saveData();
                 }
 
+                // إنشاء معرف فريد للتحميل (Loader) لضمان عدم التداخل بين الرسائل
                 const loadId = appendLoader();
 
-                // لا نستخدم await هنا بشكل يوقف الواجهة، ولكن ننتظر النتيجة لتحديث الشات
                 try {
                     const res = await fetch(CONF.API, {
                         method: 'POST', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ api_key: CONF.KEY, message: txt, session_id: state.activeId })
                     });
                     
-                    // إزالة مؤشر التحميل الخاص بهذه الرسالة فقط
+                    // إزالة أيقونة التحميل الخاصة بهذه الرسالة تحديداً
                     document.getElementById(loadId)?.remove();
                     
                     if (!res.ok) throw new Error();
@@ -265,8 +367,8 @@
                     if(currentChat) { currentChat.msgs.push({ role: 'assistant', content: reply }); saveData(); }
                 } catch (err) {
                     document.getElementById(loadId)?.remove(); appendMsg('bot', '⚠️ فشل الاتصال.');
-                }
-                // تمت إزالة finally التي كانت تعيد حالة المعالجة
+                } 
+                // لا نحتاج لإعادة processing = false لأننا لا نستخدمها
             }
 
             function appendMsg(role, text) {
@@ -319,8 +421,9 @@
                 els.box.scrollTop = els.box.scrollHeight;
             }
 
+            // دالة محسنة لإنشاء معرفات فريدة
             function appendLoader() {
-                const id = 'loader_' + Date.now() + Math.random().toString(36).substr(2, 9); // معرف فريد لضمان عدم التداخل
+                const id = 'loader_' + Date.now() + Math.random().toString(36).substr(2, 9);
                 const div = document.createElement('div');
                 div.id = id; div.className = 'message msg-bot';
                 div.innerHTML = '<div class="msg-bubble"><i class="fas fa-circle-notch fa-spin"></i> جاري المعالجة...</div>';
@@ -350,6 +453,7 @@
                 state.recognition.onstart = () => { state.isRecording = true; els.btnMic.classList.add('mic-active'); els.input.placeholder = "تحدث الآن..."; };
                 state.recognition.onend = () => { state.isRecording = false; els.btnMic.classList.remove('mic-active'); els.input.placeholder = "اكتب هنا..."; };
                 state.recognition.onresult = (event) => { els.input.value += (els.input.value ? ' ' : '') + event.results[0][0].transcript; els.input.dispatchEvent(new Event('input')); };
+                state.recognition.onerror = (event) => { els.btnMic.classList.remove('mic-active'); if(event.error === 'not-allowed') alert("يرجى السماح باستخدام الميكروفون."); };
                 state.recognition.start();
             }
 
