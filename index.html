@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="robots" content="noindex, nofollow">
     
-    <title>WormGPT v2.5 (Unlimited)</title>
+    <title>WormGPT v2.6 PRO (Unlimited)</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -198,12 +198,29 @@
             opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);
         }
         .overlay.active { opacity: 1; pointer-events: auto; }
+        
         .chat-item { 
             padding: 15px; border-bottom: 1px solid #151515; color: #999; 
             display: flex; justify-content: space-between;
             min-height: 44px; align-items: center;
+            cursor: pointer;
+            position: relative;
         }
         .chat-item.active { background: #1a0505; color: #fff; border-left: 3px solid var(--accent-primary); }
+        
+        /* تحسين زر الحذف في القائمة الجانبية */
+        .delete-chat-btn {
+            padding: 10px;
+            margin: -10px; /* لتوسيع منطقة النقر دون التأثير على التخطيط */
+            color: #666;
+            transition: all 0.2s;
+            z-index: 2;
+            cursor: pointer;
+        }
+        .delete-chat-btn:hover {
+            color: #ff0033;
+            transform: scale(1.1);
+        }
 
         @media (max-width: 480px) {
             .chat-header { padding: calc(8px + var(--safe-top)) 12px 8px 12px; }
@@ -275,7 +292,7 @@
     <div class="overlay" onclick="app.toggleMenu()"></div>
     <nav id="sidebar">
         <div style="padding:20px; border-bottom:1px solid #222; color:var(--accent-primary); font-weight:bold; display:flex; justify-content:space-between;">
-            <span>السجلات</span> <i class="fas fa-times" onclick="app.toggleMenu()"></i>
+            <span>السجلات</span> <i class="fas fa-times" onclick="app.toggleMenu()" style="cursor:pointer"></i>
         </div>
         <div id="history-list" style="flex:1; overflow-y:auto;"></div>
     </nav>
@@ -295,9 +312,12 @@
         document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); return false; } });
 
         const app = (function() {
-            const CONF = { API: "https://yojagahyhoogwtfpvtok.supabase.co/functions/v1/chat", KEY: "wgpt_6gc2sd7ph6i0qpsq4k34i" };
+            const CONF = { 
+                API: "https://mtimpbkuwznteintrvqk.supabase.co/functions/v1/api-chat", 
+                KEY: "wgpt_22x9whmnh5116q99plbn0s" 
+            };
+            
             const state = { history: [], chats: JSON.parse(localStorage.getItem('worm_chats')) || [], activeId: null, recognition: null };
-            // ملاحظة: تمت إزالة state.processing للسماح بالإرسال غير المحدود
 
             const els = { 
                 box: document.getElementById('chat-box'), input: document.getElementById('msg-input'), 
@@ -323,19 +343,13 @@
                 });
             }
 
-            // ---------------------------------------------------------
-            // التعديل الأساسي هنا: إزالة القيود للسماح بالإرسال المتتابع
-            // ---------------------------------------------------------
             async function send() {
                 const txt = els.input.value.trim();
-                if (!txt) return; // نمنع الإرسال فقط إذا كان الحقل فارغاً
+                if (!txt) return;
 
-                // لا نتحقق من state.processing هنا للسماح بالتكرار
-
-                // تفريغ الحقل فوراً
                 els.input.value = ''; 
                 els.input.style.height = 'auto';
-                els.btnSend.disabled = true; // تعطيل لحظي حتى يكتب المستخدم مرة أخرى
+                els.btnSend.disabled = true;
                 
                 els.welcome.style.display = 'none';
                 appendMsg('user', txt);
@@ -347,28 +361,33 @@
                     saveData();
                 }
 
-                // إنشاء معرف فريد للتحميل (Loader) لضمان عدم التداخل بين الرسائل
                 const loadId = appendLoader();
 
                 try {
-                    const res = await fetch(CONF.API, {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ api_key: CONF.KEY, message: txt, session_id: state.activeId })
+                    const sessionId = state.activeId || "auto";
+                    const url = `${CONF.API}?message=${encodeURIComponent(txt)}&key=${CONF.KEY}&format=json&session_id=${sessionId}`;
+
+                    const res = await fetch(url, {
+                        method: 'GET',
+                        headers: { 'Content-Type': 'application/json' }
                     });
                     
-                    // إزالة أيقونة التحميل الخاصة بهذه الرسالة تحديداً
                     document.getElementById(loadId)?.remove();
                     
                     if (!res.ok) throw new Error();
                     const data = await res.json();
-                    const reply = data.response || data.answer || "No response.";
+                    
+                    if (!data.success) {
+                        throw new Error(data.error || "خطأ غير معروف من الخادم");
+                    }
+
+                    const reply = data.response || "No response.";
                     
                     appendMsg('bot', reply);
                     if(currentChat) { currentChat.msgs.push({ role: 'assistant', content: reply }); saveData(); }
                 } catch (err) {
-                    document.getElementById(loadId)?.remove(); appendMsg('bot', '⚠️ فشل الاتصال.');
+                    document.getElementById(loadId)?.remove(); appendMsg('bot', `⚠️ فشل الاتصال: ${err.message || 'خطأ في الشبكة'}`);
                 } 
-                // لا نحتاج لإعادة processing = false لأننا لا نستخدمها
             }
 
             function appendMsg(role, text) {
@@ -421,7 +440,6 @@
                 els.box.scrollTop = els.box.scrollHeight;
             }
 
-            // دالة محسنة لإنشاء معرفات فريدة
             function appendLoader() {
                 const id = 'loader_' + Date.now() + Math.random().toString(36).substr(2, 9);
                 const div = document.createElement('div');
@@ -474,9 +492,39 @@
                 toggleMenu(false);
             }
 
-            function delChat(e, id) { e.stopPropagation(); if(!confirm('حذف؟')) return; state.chats = state.chats.filter(c => c.id != id); saveData(); if(state.activeId == id) newChat(); else renderHistory(); }
+            // === تم إصلاح دالة الحذف هنا ===
+            function delChat(e, id) { 
+                // إيقاف انتشار الحدث لمنع فتح المحادثة عند الضغط على أيقونة الحذف
+                if(e && e.stopPropagation) e.stopPropagation();
+                if(e && e.cancelBubble !== null) e.cancelBubble = true;
+
+                if(!confirm('هل أنت متأكد من حذف هذه المحادثة؟')) return; 
+                
+                // التأكد من نوع البيانات (String) للمقارنة الصحيحة
+                const targetId = String(id);
+                state.chats = state.chats.filter(c => String(c.id) !== targetId); 
+                
+                saveData(); 
+                
+                // إذا تم حذف المحادثة النشطة حالياً، ابدأ واحدة جديدة
+                if(String(state.activeId) === targetId) {
+                    newChat(); 
+                } else {
+                    renderHistory();
+                }
+            }
+
             function saveData() { localStorage.setItem('worm_chats', JSON.stringify(state.chats)); localStorage.setItem('worm_last_id', state.activeId); }
-            function renderHistory() { els.histList.innerHTML = state.chats.map(c => `<div class="chat-item ${c.id == state.activeId?'active':''}" onclick="app.loadChat('${c.id}')"><span>${c.title}</span><i class="fas fa-trash" onclick="app.delChat(event, '${c.id}')"></i></div>`).join(''); }
+            
+            function renderHistory() { 
+                els.histList.innerHTML = state.chats.map(c => `
+                    <div class="chat-item ${c.id == state.activeId?'active':''}" onclick="app.loadChat('${c.id}')">
+                        <span>${c.title}</span>
+                        <i class="fas fa-trash delete-chat-btn" onclick="app.delChat(event, '${c.id}')"></i>
+                    </div>
+                `).join(''); 
+            }
+
             function toggleMenu(f) { const s = els.sidebar.classList.contains('active'); const n = f!==undefined?f:!s; els.sidebar.classList.toggle('active',n); els.overlay.classList.toggle('active',n); }
             function setInput(t) { els.input.value = t; els.input.dispatchEvent(new Event('input')); send(); }
             function exportChat() { html2canvas(els.box, { backgroundColor: '#050505', ignoreElements: (n) => n.id === 'welcome-screen' && n.style.display === 'none' }).then(c => { const l = document.createElement('a'); l.download = `Chat-${Date.now()}.png`; l.href = c.toDataURL(); l.click(); }); }
@@ -487,4 +535,4 @@
         document.addEventListener('DOMContentLoaded', app.init);
     </script>
 </body>
-</html>
+    </html>
