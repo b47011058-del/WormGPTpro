@@ -58,6 +58,38 @@
         }
 
         /* ========================================= */
+        /* Login Screen Styles (NEW)                 */
+        /* ========================================= */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background-image: radial-gradient(circle at 50% 50%, #1a0005 0%, #000000 90%);
+        }
+        .login-box {
+            background: rgba(20, 0, 0, 0.8);
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 0 20px var(--accent-glow);
+            padding: 30px; border-radius: 12px;
+            text-align: center; width: 90%; max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+        .login-title { font-family: 'Orbitron'; color: var(--accent-primary); margin-bottom: 20px; font-size: 1.5rem; letter-spacing: 2px; }
+        .login-input {
+            width: 100%; padding: 12px; background: #111; border: 1px solid #333;
+            color: #fff; font-family: 'Fira Code', monospace; text-align: center;
+            margin-bottom: 20px; border-radius: 6px; letter-spacing: 3px; font-size: 1.1rem;
+        }
+        .login-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 10px var(--accent-glow); }
+        .login-btn {
+            background: var(--accent-primary); color: #fff; border: none; padding: 10px 20px;
+            width: 100%; font-family: 'Cairo'; font-weight: bold; border-radius: 6px;
+            cursor: pointer; transition: 0.3s;
+        }
+        .login-btn:hover { background: #cc0029; }
+        .error-msg { color: #ff0000; font-size: 0.9rem; margin-top: 10px; min-height: 20px; opacity: 0; transition: opacity 0.3s; }
+
+        /* ========================================= */
         /* Components                                */
         /* ========================================= */
         #chat-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
@@ -208,10 +240,9 @@
         }
         .chat-item.active { background: #1a0505; color: #fff; border-left: 3px solid var(--accent-primary); }
         
-        /* تحسين زر الحذف في القائمة الجانبية */
         .delete-chat-btn {
             padding: 10px;
-            margin: -10px; /* لتوسيع منطقة النقر دون التأثير على التخطيط */
+            margin: -10px; 
             color: #666;
             transition: all 0.2s;
             z-index: 2;
@@ -237,6 +268,17 @@
 </head>
 <body>
     
+    <div id="login-overlay">
+        <div class="login-box">
+            <i class="fas fa-fingerprint" style="font-size: 3rem; color: #ff0033; margin-bottom: 15px;"></i>
+            <div class="login-title">ACCESS CONTROL</div>
+            <p style="color: #888; margin-bottom: 20px; font-size: 0.9rem;">أدخل كود الوصول للمتابعة</p>
+            <input type="text" id="access-code" class="login-input" placeholder="X-X-X-X-X" autocomplete="off">
+            <button onclick="checkAccess()" class="login-btn">دخول للنظام</button>
+            <div id="login-error" class="error-msg">الكود غير صحيح</div>
+        </div>
+    </div>
+
     <div id="chat-wrapper">
         <header class="chat-header">
             <button onclick="app.newChat()" class="header-btn" aria-label="بدء محادثة جديدة"><i class="fas fa-plus"></i></button>
@@ -298,6 +340,58 @@
     </nav>
 
     <script>
+        // =========================================
+        // ACCESS CONTROL SYSTEM
+        // =========================================
+        const VALID_CODES = [
+            "X7K9M2P4L1",
+            "R5D8W3Q9Z2",
+            "H4J6N8B2V5",
+            "Y9T3F7C1X6",
+            "G2L5K8M4P9"
+        ];
+
+        // Check if already logged in previously (Session)
+        if (sessionStorage.getItem('worm_auth') === 'true') {
+            document.getElementById('login-overlay').style.display = 'none';
+        }
+
+        function checkAccess() {
+            const input = document.getElementById('access-code');
+            const errorMsg = document.getElementById('login-error');
+            const code = input.value.trim();
+
+            if (VALID_CODES.includes(code)) {
+                // Success
+                sessionStorage.setItem('worm_auth', 'true');
+                const overlay = document.getElementById('login-overlay');
+                overlay.style.transition = 'opacity 0.5s';
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
+            } else {
+                // Fail
+                errorMsg.style.opacity = '1';
+                input.style.borderColor = 'red';
+                input.value = '';
+                setTimeout(() => {
+                    errorMsg.style.opacity = '0';
+                    input.style.borderColor = '#333';
+                }, 2000);
+            }
+        }
+
+        // Allow pressing Enter to login
+        document.getElementById('access-code').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkAccess();
+            }
+        });
+
+
+        // =========================================
+        // MAIN APP LOGIC
+        // =========================================
+
         // حماية إضافية
         document.addEventListener('keydown', function(e) {
             if (e.key === 'F12' || 
@@ -492,21 +586,17 @@
                 toggleMenu(false);
             }
 
-            // === تم إصلاح دالة الحذف هنا ===
             function delChat(e, id) { 
-                // إيقاف انتشار الحدث لمنع فتح المحادثة عند الضغط على أيقونة الحذف
                 if(e && e.stopPropagation) e.stopPropagation();
                 if(e && e.cancelBubble !== null) e.cancelBubble = true;
 
                 if(!confirm('هل أنت متأكد من حذف هذه المحادثة؟')) return; 
                 
-                // التأكد من نوع البيانات (String) للمقارنة الصحيحة
                 const targetId = String(id);
                 state.chats = state.chats.filter(c => String(c.id) !== targetId); 
                 
                 saveData(); 
                 
-                // إذا تم حذف المحادثة النشطة حالياً، ابدأ واحدة جديدة
                 if(String(state.activeId) === targetId) {
                     newChat(); 
                 } else {
@@ -535,4 +625,4 @@
         document.addEventListener('DOMContentLoaded', app.init);
     </script>
 </body>
-    </html>
+</html>
