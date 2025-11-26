@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#000000">
+    <meta name="theme-color" content="#050505">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <title>WormGPT v2.6 PRO (Unlimited)</title>
+    <title>WormGPT v2.6 PRO</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,250 +22,61 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        /* ========================================= */
-        /* CSS Variables & Reset                     */
-        /* ========================================= */
-        :root {
-            --bg-core: #050505;
-            --accent-primary: #ff0033;
-            --accent-glow: rgba(255, 0, 51, 0.4);
-            --text-main: #e0e0e0;
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
-        }
-
+        /* نفس التنسيقات السابقة تماماً */
+        :root { --bg-core: #050505; --accent-primary: #ff0033; --accent-glow: rgba(255, 0, 51, 0.4); --text-main: #e0e0e0; --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom); }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-
-        body {
-            background-color: var(--bg-core);
-            color: var(--text-main);
-            font-family: 'Cairo', sans-serif;
-            height: 100dvh; overflow: hidden;
-            background-image: radial-gradient(circle at 50% 0%, #1a0005 0%, #000000 80%);
-            -webkit-touch-callout: none;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
-        .msg-bubble {
-            -webkit-user-select: text;
-            user-select: text;
-        }
-
-        /* Scanlines Effect */
-        body::after {
-            content: ""; position: absolute; inset: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            background-size: 100% 4px; pointer-events: none; z-index: 9999; opacity: 0.6;
-        }
-
-        /* ========================================= */
-        /* Login Screen Styles (NEW)                 */
-        /* ========================================= */
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 100000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background-image: radial-gradient(circle at 50% 50%, #1a0005 0%, #000000 90%);
-        }
-        .login-box {
-            background: rgba(20, 0, 0, 0.8);
-            border: 1px solid var(--accent-primary);
-            box-shadow: 0 0 20px var(--accent-glow);
-            padding: 30px; border-radius: 12px;
-            text-align: center; width: 90%; max-width: 400px;
-            backdrop-filter: blur(10px);
-        }
+        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+        body { background-color: var(--bg-core); color: var(--text-main); font-family: 'Cairo', sans-serif; height: 100dvh; overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #1a0005 0%, #000000 80%); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+        .msg-bubble, .code-wrapper { -webkit-user-select: text; user-select: text; }
+        body::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%); background-size: 100% 4px; pointer-events: none; z-index: 9999; opacity: 0.4; }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 50%, #1a0005 0%, #000000 90%); }
+        .login-box { background: rgba(20, 0, 0, 0.8); border: 1px solid var(--accent-primary); box-shadow: 0 0 20px var(--accent-glow); padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 400px; backdrop-filter: blur(10px); }
         .login-title { font-family: 'Orbitron'; color: var(--accent-primary); margin-bottom: 20px; font-size: 1.5rem; letter-spacing: 2px; }
-        .login-input {
-            width: 100%; padding: 12px; background: #111; border: 1px solid #333;
-            color: #fff; font-family: 'Fira Code', monospace; text-align: center;
-            margin-bottom: 20px; border-radius: 6px; letter-spacing: 3px; font-size: 1.1rem;
-        }
+        .login-input { width: 100%; padding: 12px; background: #111; border: 1px solid #333; color: #fff; font-family: 'Fira Code', monospace; text-align: center; margin-bottom: 20px; border-radius: 6px; letter-spacing: 3px; font-size: 1.1rem; }
         .login-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 10px var(--accent-glow); }
-        .login-btn {
-            background: var(--accent-primary); color: #fff; border: none; padding: 10px 20px;
-            width: 100%; font-family: 'Cairo'; font-weight: bold; border-radius: 6px;
-            cursor: pointer; transition: 0.3s;
-        }
-        .login-btn:hover { background: #cc0029; }
-        .error-msg { color: #ff0000; font-size: 0.9rem; margin-top: 10px; min-height: 20px; opacity: 0; transition: opacity 0.3s; }
-
-        /* ========================================= */
-        /* Components                                */
-        /* ========================================= */
+        .login-btn { background: var(--accent-primary); color: #fff; border: none; padding: 12px 20px; width: 100%; font-family: 'Cairo'; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; font-size: 1rem; }
+        .login-btn:active { transform: scale(0.98); }
         #chat-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
-
-        /* Header */
-        .chat-header {
-            padding: calc(10px + var(--safe-top)) 15px 10px 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(10, 0, 0, 0.95); border-bottom: 1px solid #330000;
-            backdrop-filter: blur(10px);
-            touch-action: manipulation;
-        }
+        .chat-header { padding: calc(12px + var(--safe-top)) 15px 12px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(5, 5, 5, 0.98); border-bottom: 1px solid #330000; backdrop-filter: blur(10px); }
         #title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); }
-        .header-btn { 
-            width: 38px; height: 38px; background: rgba(255,255,255,0.03); 
-            border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; 
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            min-width: 44px; min-height: 44px;
-        }
-
-        /* Chat Box */
-        #chat-box { 
-            flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 30px; scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-        }
-
-        /* Welcome Screen */
-        #welcome-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.8; overflow-y: auto; padding: 20px 0; }
+        .header-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
+        .header-btn:active { transform: scale(0.9); background: rgba(255,0,51,0.1); }
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 30px; scroll-behavior: smooth; }
+        #welcome-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.9; overflow-y: auto; padding: 20px 0; }
         #welcome-screen i.main-icon { font-size: 4rem; color: var(--accent-primary); margin-bottom: 20px; animation: pulse 3s infinite; }
-        @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } 100% { opacity: 1; transform: scale(1); } }
-
-        .suggestions { 
-            display: grid; 
-            gap: 10px; 
-            width: 100%; 
-            max-width: 650px; 
-            margin-top: 30px; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        }
-        
-        .sug-card { 
-            background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 12px; 
-            border-radius: 8px; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; 
-            cursor: pointer; transition: 0.2s;
-            min-height: 44px;
-        }
-        .sug-card:hover { background: rgba(255, 0, 51, 0.1); border-color: var(--accent-primary); }
-
-        /* Messages */
-        .message { max-width: 92%; margin-bottom: 20px; display: flex; flex-direction: column; position: relative; }
-        
-        .msg-bubble {
-            padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word;
-            touch-action: manipulation;
-        }
-
+        .suggestions { display: grid; gap: 10px; width: 100%; max-width: 650px; margin-top: 30px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); padding: 0 10px; }
+        .sug-card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 14px; border-radius: 10px; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: 0.2s; }
+        .sug-card:active { background: rgba(255, 0, 51, 0.15); border-color: var(--accent-primary); transform: scale(0.98); }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .message { max-width: 92%; margin-bottom: 20px; display: flex; flex-direction: column; animation: slideIn 0.3s ease-out; }
+        .msg-bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word; }
         .msg-user { align-self: flex-end; margin-left: auto; }
-        .msg-user .msg-bubble {
-            background: linear-gradient(145deg, #80001a, #4d000f); color: #fff; border-bottom-left-radius: 2px;
-        }
-
+        .msg-user .msg-bubble { background: linear-gradient(145deg, #80001a, #4d000f); color: #fff; border-bottom-left-radius: 2px; }
         .msg-bot { align-self: flex-start; margin-right: auto; width: 100%; }
-        .msg-bot .msg-bubble {
-            background: #111; border: 1px solid #2a2a2a; color: #ddd; border-bottom-right-radius: 2px;
-        }
-
-        .msg-actions {
-            display: flex; justify-content: flex-end; gap: 10px; padding: 5px 10px;
-            margin-top: 5px; opacity: 0.7; transition: opacity 0.3s;
-        }
-        .msg-action-btn {
-            background: none; border: none; color: #888; font-size: 0.8rem; cursor: pointer;
-            display: flex; align-items: center; gap: 5px; font-family: 'Cairo';
-            min-height: 32px; padding: 0 8px;
-        }
-        .msg-action-btn:hover { color: var(--accent-primary); }
-
-        .msg-bot strong { color: #fff; }
-        .msg-bot h1, .msg-bot h2, .msg-bot h3 { color: var(--accent-primary); margin-top: 15px; font-family: 'Orbitron'; }
-        
-        .code-wrapper { margin: 12px 0; border: 1px solid #333; border-radius: 6px; overflow: hidden; background: #1e1e1e; direction: ltr; text-align: left; }
-        .code-header {
-            display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
-            background: #252525; border-bottom: 1px solid #333; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa;
-        }
-        .copy-code-btn { 
-            border: none; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; 
-            font-size: 0.75rem; padding: 4px 8px; border-radius: 4px;
-            min-height: 28px;
-        }
-        .copy-code-btn:hover { background: var(--accent-primary); }
+        .msg-bot .msg-bubble { background: #111; border: 1px solid #2a2a2a; color: #ddd; border-bottom-right-radius: 2px; }
+        .msg-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 5px 10px; margin-top: 5px; opacity: 0.8; }
+        .msg-action-btn { background: rgba(255,255,255,0.05); border: 1px solid #333; color: #aaa; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Cairo'; padding: 6px 12px; border-radius: 15px; transition: 0.2s; }
+        .msg-action-btn:active { transform: scale(0.95); background: rgba(255,0,51,0.2); color: #fff; }
+        .code-wrapper { margin: 12px 0; border: 1px solid #333; border-radius: 8px; overflow: hidden; background: #1e1e1e; direction: ltr; text-align: left; }
+        .code-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #252525; border-bottom: 1px solid #333; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa; }
         pre { padding: 15px; overflow-x: auto; margin: 0; }
         code { font-family: 'Fira Code', monospace; font-size: 0.85rem; }
-
-        /* Input Area */
-        .input-wrapper { 
-            background: rgba(0, 0, 0, 0.95); border-top: 1px solid #222; 
-            padding: 10px; padding-bottom: calc(10px + var(--safe-bottom)); 
-            position: sticky; bottom: 0; z-index: 30;
-            touch-action: manipulation;
-        }
-        .input-box { 
-            display: flex; align-items: flex-end; gap: 8px; background: #151515; 
-            border-radius: 20px; padding: 6px 12px; border: 1px solid #333;
-            touch-action: manipulation;
-        }
+        .input-wrapper { background: rgba(5, 5, 5, 0.98); border-top: 1px solid #222; padding: 10px; padding-bottom: calc(10px + var(--safe-bottom)); position: sticky; bottom: 0; z-index: 30; }
+        .input-box { display: flex; align-items: flex-end; gap: 8px; background: #151515; border-radius: 24px; padding: 8px 12px; border: 1px solid #333; }
         .input-box:focus-within { border-color: var(--accent-primary); }
-        textarea { 
-            flex: 1; background: transparent; border: none; color: #fff; 
-            padding: 8px 0; font-size: 1rem; max-height: 120px; resize: none; 
-            font-family: 'Cairo';
-            touch-action: manipulation;
-        }
-        
-        .action-btn { 
-            width: 36px; height: 36px; border-radius: 50%; border: none; 
-            background: transparent; color: #666; display: flex; align-items: center; 
-            justify-content: center; font-size: 1.1rem; transition: 0.2s;
-            min-width: 44px; min-height: 44px;
-        }
-        .send-btn { background: var(--accent-primary); color: white; margin-bottom: 2px; }
-        .send-btn:disabled { background: #333; color: #555; }
-        
+        textarea { flex: 1; background: transparent; border: none; color: #fff; padding: 8px 4px; font-size: 1rem; max-height: 120px; resize: none; font-family: 'Cairo'; }
+        .action-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #777; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; }
+        .action-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.1); }
+        .send-btn { background: var(--accent-primary); color: white; margin-bottom: 2px; box-shadow: 0 0 10px rgba(255,0,51,0.3); }
+        .send-btn:disabled { background: #333; color: #555; box-shadow: none; }
         .mic-active { color: #ff0033 !important; animation: micPulse 1s infinite; }
         @keyframes micPulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-
-        /* Sidebar */
-        #sidebar { 
-            position: fixed; top: 0; right: 0; width: 80%; max-width: 300px; height: 100%; 
-            background: #0a0a0a; border-left: 1px solid #222; z-index: 100; 
-            transform: translateX(100%); transition: 0.3s; display: flex; flex-direction: column; 
-            padding-top: var(--safe-top);
-            -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-        }
+        #sidebar { position: fixed; top: 0; right: 0; width: 85%; max-width: 320px; height: 100%; background: #0a0a0a; border-left: 1px solid #222; z-index: 100; transform: translateX(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding-top: var(--safe-top); }
         #sidebar.active { transform: translateX(0); }
-        .overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90; 
-            opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(2px);
-        }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 90; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(4px); }
         .overlay.active { opacity: 1; pointer-events: auto; }
-        
-        .chat-item { 
-            padding: 15px; border-bottom: 1px solid #151515; color: #999; 
-            display: flex; justify-content: space-between;
-            min-height: 44px; align-items: center;
-            cursor: pointer;
-            position: relative;
-        }
-        .chat-item.active { background: #1a0505; color: #fff; border-left: 3px solid var(--accent-primary); }
-        
-        .delete-chat-btn {
-            padding: 10px;
-            margin: -10px; 
-            color: #666;
-            transition: all 0.2s;
-            z-index: 2;
-            cursor: pointer;
-        }
-        .delete-chat-btn:hover {
-            color: #ff0033;
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 480px) {
-            .chat-header { padding: calc(8px + var(--safe-top)) 12px 8px 12px; }
-            #title { font-size: 1.1rem; }
-            .header-btn { width: 36px; height: 36px; }
-            #chat-box { padding: 12px; padding-bottom: 25px; }
-            .message { max-width: 95%; }
-            .msg-bubble { padding: 10px 14px; font-size: 0.9rem; }
-            .input-wrapper { padding: 8px; }
-            .input-box { padding: 5px 10px; }
-            .action-btn { width: 34px; height: 34px; }
-        }
+        .chat-item { padding: 16px; border-bottom: 1px solid #151515; color: #bbb; display: flex; justify-content: space-between; align-items: center; }
+        .chat-item:active { background: #1a1a1a; }
     </style>
 </head>
 <body>
@@ -272,61 +85,51 @@
         <div class="login-box">
             <i class="fas fa-fingerprint" style="font-size: 3rem; color: #ff0033; margin-bottom: 15px;"></i>
             <div class="login-title">ACCESS CONTROL</div>
-            <p style="color: #888; margin-bottom: 20px; font-size: 0.9rem;">أدخل كود الوصول للمتابعة</p>
             <input type="text" id="access-code" class="login-input" placeholder="X-X-X-X-X" autocomplete="off">
             <button onclick="checkAccess()" class="login-btn">دخول للنظام</button>
-            <div id="login-error" class="error-msg">الكود غير صحيح</div>
+            <div id="login-error" class="error-msg" style="color:#f00; opacity:0; margin-top:10px">الكود غير صحيح</div>
         </div>
     </div>
 
     <div id="chat-wrapper">
         <header class="chat-header">
-            <button onclick="app.newChat()" class="header-btn" aria-label="بدء محادثة جديدة"><i class="fas fa-plus"></i></button>
+            <button onclick="app.vibrate(); app.newChat()" class="header-btn"><i class="fas fa-plus"></i></button>
             <div id="title">WORM<span style="color:#fff">GPT</span></div>
-            <button onclick="app.toggleMenu()" class="header-btn" aria-label="فتح القائمة"><i class="fas fa-bars"></i></button>
+            <button onclick="app.vibrate(); app.toggleMenu()" class="header-btn"><i class="fas fa-bars"></i></button>
         </header>
         
         <div id="chat-box">
             <div id="welcome-screen">
                 <i class="fas fa-biohazard main-icon"></i>
                 <h2 style="font-family:'Orbitron'">WormGPT v2.6 PRO </h2>
-                <p style="color:#666;">مشفر. سريع. آمن.</p>
+                <p style="color:#666; margin-bottom:20px;">نظام اختراق ومحادثة مشفر</p>
                 
                 <div class="suggestions">
                     <div class="sug-card" onclick="app.setInput('أكتب كود بايثون لفحص المنافذ المفتوحة (Port Scanner)')">
-                        <i class="fab fa-python"></i> <span>فحص الشبكات (Python)</span>
+                        <i class="fab fa-python" style="color:#ffcc00"></i> <span>فحص الشبكات (Python)</span>
                     </div>
-                
                     <div class="sug-card" onclick="app.setInput('كيفية استغلال ثغرات نواة Linux القديمة')">
-                        <i class="fab fa-linux"></i> <span>استغلال ثغرات Kernel</span>
+                        <i class="fab fa-linux" style="color:#fff"></i> <span>استغلال ثغرات Kernel</span>
                     </div>
-                
                     <div class="sug-card" onclick="app.setInput('شرح كيفية تنفيذ هجوم SQL Injection يدوياً')">
-                        <i class="fas fa-database"></i> <span>حقن قواعد البيانات (SQLi)</span>
+                        <i class="fas fa-database" style="color:#00ccff"></i> <span>حقن قواعد البيانات (SQLi)</span>
                     </div>
-                
                     <div class="sug-card" onclick="app.setInput('كيفية تحليل ملف EXE مشبوه واستخراج النصوص منه')">
-                        <i class="fas fa-microchip"></i> <span>الهندسة العكسية</span>
+                        <i class="fas fa-microchip" style="color:#ff0033"></i> <span>الهندسة العكسية</span>
                     </div>
-                
-                    <div class="sug-card" onclick="app.setInput('كود تشفير وفك تشفير الملفات Ransomware style')">
-                        <i class="fas fa-file-code"></i> <span>تشفير الملفات</span>
-                    </div>
-                
                     <div class="sug-card" onclick="app.setInput('أدوات كسر حماية WPA2 Handshake')">
-                        <i class="fas fa-wifi"></i> <span>اختراق شبكات WiFi</span>
+                        <i class="fas fa-wifi" style="color:#00ff99"></i> <span>اختراق شبكات WiFi</span>
                     </div>
                 </div>
-
             </div>
         </div>
         
         <div class="input-wrapper">
             <form class="input-box" onsubmit="event.preventDefault(); app.send();">
-                <button type="button" onclick="app.exportChat()" class="action-btn" style="font-size:0.9rem" aria-label="تصدير المحادثة"><i class="fas fa-camera"></i></button>
-                <button type="button" id="btn-mic" onclick="app.toggleVoice()" class="action-btn" aria-label="التعرف الصوتي"><i class="fas fa-microphone"></i></button>
-                <textarea id="msg-input" placeholder="اكتب هنا..." rows="1"></textarea>
-                <button type="submit" id="btn-send" class="action-btn send-btn" disabled aria-label="إرسال"><i class="fas fa-arrow-up"></i></button>
+                <button type="button" onclick="app.vibrate(); app.exportChat()" class="action-btn"><i class="fas fa-camera"></i></button>
+                <button type="button" id="btn-mic" onclick="app.vibrate(); app.toggleVoice()" class="action-btn"><i class="fas fa-microphone"></i></button>
+                <textarea id="msg-input" placeholder="اكتب الأمر هنا..." rows="1"></textarea>
+                <button type="submit" id="btn-send" class="action-btn send-btn" disabled><i class="fas fa-arrow-up"></i></button>
             </form>
         </div>
     </div>
@@ -343,14 +146,8 @@
         // =========================================
         // ACCESS CONTROL SYSTEM
         // =========================================
-        const VALID_CODES = [
-            "X7K9M2P4L1",
-            "R5D8W3Q9Z2",
-            "H4J6N8B2V5",
-            "Y9T3F7C1X6",
-            "G2L5K8M4P9"
-        ];
-
+        const VALID_CODES = ["X7K9M2P4L1", "R5D8W3Q9Z2", "H4J6N8B2V5", "Y9T3F7C1X6", "G2L5K8M4P9"];
+        
         if (sessionStorage.getItem('worm_auth') === 'true') {
             document.getElementById('login-overlay').style.display = 'none';
         }
@@ -359,6 +156,7 @@
             const input = document.getElementById('access-code');
             const errorMsg = document.getElementById('login-error');
             const code = input.value.trim();
+            if(navigator.vibrate) navigator.vibrate(50);
 
             if (VALID_CODES.includes(code)) {
                 sessionStorage.setItem('worm_auth', 'true');
@@ -367,40 +165,27 @@
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.style.display = 'none', 500);
             } else {
+                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
                 errorMsg.style.opacity = '1';
                 input.style.borderColor = 'red';
                 input.value = '';
-                setTimeout(() => {
-                    errorMsg.style.opacity = '0';
-                    input.style.borderColor = '#333';
-                }, 2000);
+                setTimeout(() => { errorMsg.style.opacity = '0'; input.style.borderColor = '#333'; }, 2000);
             }
         }
-
-        document.getElementById('access-code').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') checkAccess();
-        });
+        document.getElementById('access-code').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAccess(); });
 
         // =========================================
         // MAIN APP LOGIC
         // =========================================
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) {
-                e.preventDefault(); return false;
-            }
-        });
-        document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
-        document.addEventListener('dragstart', function(e) { if (e.target.tagName === 'IMG' || e.target.tagName === 'A') { e.preventDefault(); } });
-
         const app = (function() {
-            const CONF = { 
-                API: "https://mtimpbkuwznteintrvqk.supabase.co/functions/v1/api-chat", 
-                KEY: "wgpt_orfxa6l3mpncnaco7fk3hgi6xzmrdr2w" 
-            };
-            
+            const CONF = { API: "https://mtimpbkuwznteintrvqk.supabase.co/functions/v1/api-chat", KEY: "wgpt_orfxa6l3mpncnaco7fk3hgi6xzmrdr2w" };
             const state = { history: [], chats: JSON.parse(localStorage.getItem('worm_chats')) || [], activeId: null, recognition: null };
-            let currentTTSBtn = null; // تتبع زر القراءة الحالي
+            
+            // متغيرات الصوت الجديدة
+            let audioPlayer = null;
+            let audioQueue = [];
+            let isPlaying = false;
+            let currentTTSBtn = null;
 
             const els = { 
                 box: document.getElementById('chat-box'), input: document.getElementById('msg-input'), 
@@ -411,6 +196,8 @@
 
             marked.setOptions({ breaks: true, highlight: (code, lang) => highlight.highlight(code, { language: highlight.getLanguage(lang) ? lang : 'plaintext' }).value });
 
+            function vibrate() { if(navigator.vibrate) navigator.vibrate(40); }
+
             function init() {
                 const lastId = localStorage.getItem('worm_last_id');
                 if (lastId && state.chats.find(c => c.id == lastId)) loadChat(lastId); else newChat();
@@ -420,21 +207,14 @@
                     els.btnSend.disabled = !this.value.trim();
                 });
                 renderHistory();
-                
-                window.addEventListener('beforeunload', function() {
-                    if (state.recognition && state.isRecording) { state.recognition.stop(); }
-                    window.speechSynthesis.cancel();
-                });
+                window.addEventListener('beforeunload', () => { stopAudio(); });
             }
 
             async function send() {
                 const txt = els.input.value.trim();
                 if (!txt) return;
-
-                els.input.value = ''; 
-                els.input.style.height = 'auto';
-                els.btnSend.disabled = true;
-                
+                vibrate();
+                els.input.value = ''; els.input.style.height = 'auto'; els.btnSend.disabled = true;
                 els.welcome.style.display = 'none';
                 appendMsg('user', txt);
 
@@ -446,24 +226,23 @@
                 }
 
                 const loadId = appendLoader();
-
                 try {
                     const sessionId = state.activeId || "auto";
                     const url = `${CONF.API}?message=${encodeURIComponent(txt)}&key=${CONF.KEY}&format=json&session_id=${sessionId}`;
-
                     const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
                     document.getElementById(loadId)?.remove();
-                    
                     if (!res.ok) throw new Error();
                     const data = await res.json();
-                    
-                    if (!data.success) throw new Error(data.error || "خطأ غير معروف");
+                    if (!data.success) throw new Error(data.error);
 
-                    const reply = data.response || "No response.";
+                    const reply = data.response;
+                    if(navigator.vibrate) navigator.vibrate([50, 50, 50]);
                     appendMsg('bot', reply);
                     if(currentChat) { currentChat.msgs.push({ role: 'assistant', content: reply }); saveData(); }
                 } catch (err) {
-                    document.getElementById(loadId)?.remove(); appendMsg('bot', `⚠️ فشل الاتصال: ${err.message || 'خطأ في الشبكة'}`);
+                    document.getElementById(loadId)?.remove();
+                    if(navigator.vibrate) navigator.vibrate(200);
+                    appendMsg('bot', `⚠️ فشل الاتصال: ${err.message || 'خطأ في الشبكة'}`);
                 } 
             }
 
@@ -480,7 +259,6 @@
                     const cleanHtml = DOMPurify.sanitize(marked.parse(text));
                     const contentDiv = document.createElement('div');
                     contentDiv.innerHTML = cleanHtml;
-
                     contentDiv.querySelectorAll('pre code').forEach((block) => {
                         const pre = block.parentElement;
                         const wrapper = document.createElement('div');
@@ -491,179 +269,162 @@
                         header.innerHTML = `<span>${lang}</span>`;
                         const copyBtn = document.createElement('button');
                         copyBtn.className = 'copy-code-btn';
-                        copyBtn.innerHTML = '<i class="far fa-copy"></i> نسخ الكود';
-                        copyBtn.onclick = () => copyText(block.innerText, copyBtn);
+                        copyBtn.style.cssText = "border:none;background:rgba(255,255,255,0.1);color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem";
+                        copyBtn.innerHTML = '<i class="far fa-copy"></i>';
+                        copyBtn.onclick = () => { vibrate(); copyText(block.innerText, copyBtn); };
                         header.appendChild(copyBtn);
                         wrapper.appendChild(header);
                         const newPre = pre.cloneNode(true);
                         wrapper.appendChild(newPre);
                         pre.replaceWith(wrapper);
                     });
-
                     bubble.appendChild(contentDiv);
                     div.appendChild(bubble);
 
-                    // Action Buttons (Copy & Read)
                     const actionsBar = document.createElement('div');
                     actionsBar.className = 'msg-actions';
                     
-                    // Copy Button
+                    const speakBtn = document.createElement('button');
+                    speakBtn.className = 'msg-action-btn';
+                    speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> استماع';
+                    speakBtn.onclick = () => { vibrate(); toggleTTS(text, speakBtn); };
+                    
                     const copyMsgBtn = document.createElement('button');
                     copyMsgBtn.className = 'msg-action-btn';
                     copyMsgBtn.innerHTML = '<i class="far fa-copy"></i> نسخ';
-                    copyMsgBtn.onclick = () => copyText(text, copyMsgBtn);
-                    
-                    // Read Button (NEW)
-                    const speakBtn = document.createElement('button');
-                    speakBtn.className = 'msg-action-btn';
-                    speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
-                    speakBtn.onclick = () => toggleTTS(text, speakBtn);
+                    copyMsgBtn.onclick = () => { vibrate(); copyText(text, copyMsgBtn); };
 
                     actionsBar.appendChild(speakBtn);
                     actionsBar.appendChild(copyMsgBtn);
                     div.appendChild(actionsBar);
                 }
-
                 els.box.appendChild(div);
                 els.box.scrollTop = els.box.scrollHeight;
             }
 
             // =========================================
-            // TEXT TO SPEECH FUNCTION (NEW)
+            // NEW AUDIO SYSTEM (WORKS ON APPS)
             // =========================================
             function toggleTTS(text, btn) {
-                const synth = window.speechSynthesis;
-
-                // Stop if currently speaking the same text
-                if (currentTTSBtn === btn && synth.speaking) {
-                    synth.cancel();
-                    btn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
-                    btn.style.color = '';
-                    currentTTSBtn = null;
+                // إذا كان نفس الزر يعمل حالياً، قم بالإيقاف
+                if (currentTTSBtn === btn && isPlaying) {
+                    stopAudio();
+                    resetBtn(btn);
                     return;
                 }
 
-                // Stop any other active speech
-                if (synth.speaking) {
-                    synth.cancel();
-                    if (currentTTSBtn) {
-                        currentTTSBtn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
-                        currentTTSBtn.style.color = '';
-                    }
+                // إيقاف أي صوت سابق
+                stopAudio();
+                if (currentTTSBtn) resetBtn(currentTTSBtn);
+
+                // تنظيف النص
+                const cleanText = text.replace(/[*#`_~>]/g, ' ').replace(/(<([^>]+)>)/gi, "").trim();
+                if(!cleanText) return;
+
+                // تحديث حالة الزر
+                currentTTSBtn = btn;
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> تحميل...';
+                btn.style.color = 'var(--accent-primary)';
+                
+                // تقسيم النص لجمل صغيرة (لأن جوجل لا يقبل نصوصاً طويلة جداً في الرابط)
+                // تقسيم النص بناءً على النقاط أو الفواصل أو طول معين
+                const chunks = cleanText.match(/[\s\S]{1,180}(?!\S)|[\s\S]{1,180}/g) || [cleanText];
+                
+                audioQueue = chunks;
+                playNextChunk(btn);
+            }
+
+            function playNextChunk(btn) {
+                if (audioQueue.length === 0) {
+                    stopAudio();
+                    resetBtn(btn);
+                    return;
                 }
 
-                // Clean text for better speech (remove Markdown symbols)
-                const cleanText = text.replace(/[*#`_~>]/g, '');
+                const chunk = audioQueue.shift();
+                // استخدام رابط Google Translate TTS المباشر (يعمل كملف صوتي عادي)
+                const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=ar&client=tw-ob`;
 
-                const utterance = new SpeechSynthesisUtterance(cleanText);
-                utterance.lang = 'ar-SA'; // Prefer Arabic
+                audioPlayer = new Audio(audioUrl);
                 
-                // Visual Feedback
-                utterance.onstart = () => {
-                    btn.innerHTML = '<i class="fas fa-stop-circle"></i> إيقاف';
-                    btn.style.color = 'var(--accent-primary)';
-                    currentTTSBtn = btn;
+                audioPlayer.onloadeddata = () => {
+                    if(currentTTSBtn === btn) {
+                        btn.innerHTML = '<i class="fas fa-stop"></i> إيقاف';
+                        isPlaying = true;
+                    }
                 };
 
-                utterance.onend = () => {
-                    btn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
+                audioPlayer.onended = () => {
+                    playNextChunk(btn);
+                };
+
+                audioPlayer.onerror = () => {
+                    // في حال الخطأ ننتقل للجزء التالي
+                    playNextChunk(btn);
+                };
+
+                audioPlayer.play().catch(e => {
+                    console.error("Audio Play Error:", e);
+                    stopAudio();
+                    resetBtn(btn);
+                });
+            }
+
+            function stopAudio() {
+                if (audioPlayer) {
+                    audioPlayer.pause();
+                    audioPlayer.currentTime = 0;
+                    audioPlayer = null;
+                }
+                audioQueue = [];
+                isPlaying = false;
+            }
+
+            function resetBtn(btn) {
+                if(btn) {
+                    btn.innerHTML = '<i class="fas fa-volume-up"></i> استماع';
                     btn.style.color = '';
-                    currentTTSBtn = null;
-                };
-
-                utterance.onerror = () => {
-                    btn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
-                    btn.style.color = '';
-                    currentTTSBtn = null;
-                };
-
-                synth.speak(utterance);
+                }
+                currentTTSBtn = null;
             }
 
             function appendLoader() {
-                const id = 'loader_' + Date.now() + Math.random().toString(36).substr(2, 9);
+                const id = 'loader_' + Date.now();
                 const div = document.createElement('div');
                 div.id = id; div.className = 'message msg-bot';
-                div.innerHTML = '<div class="msg-bubble"><i class="fas fa-circle-notch fa-spin"></i> جاري المعالجة...</div>';
+                div.innerHTML = '<div class="msg-bubble"><i class="fas fa-circle-notch fa-spin"></i> جاري التحليل...</div>';
                 els.box.appendChild(div); els.box.scrollTop = els.box.scrollHeight;
                 return id;
             }
 
             function copyText(text, btn) {
                 navigator.clipboard.writeText(text).then(() => {
-                    const original = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i> تم';
-                    btn.style.color = '#00ff00';
+                    const original = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.color = '#00ff00';
                     setTimeout(() => { btn.innerHTML = original; btn.style.color = ''; }, 2000);
                 });
             }
 
             function toggleVoice() {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SpeechRecognition) { alert("عذراً، متصفحك لا يدعم تحويل الصوت لنص."); return; }
+                if (!window.webkitSpeechRecognition) { alert("المتصفح لا يدعم الصوت"); return; }
                 if (state.recognition && state.isRecording) { state.recognition.stop(); return; }
-
-                state.recognition = new SpeechRecognition();
+                state.recognition = new webkitSpeechRecognition();
                 state.recognition.lang = 'ar-SA';
-                state.recognition.continuous = false;
-                state.recognition.interimResults = false;
-
-                state.recognition.onstart = () => { state.isRecording = true; els.btnMic.classList.add('mic-active'); els.input.placeholder = "تحدث الآن..."; };
-                state.recognition.onend = () => { state.isRecording = false; els.btnMic.classList.remove('mic-active'); els.input.placeholder = "اكتب هنا..."; };
-                state.recognition.onresult = (event) => { els.input.value += (els.input.value ? ' ' : '') + event.results[0][0].transcript; els.input.dispatchEvent(new Event('input')); };
-                state.recognition.onerror = (event) => { els.btnMic.classList.remove('mic-active'); if(event.error === 'not-allowed') alert("يرجى السماح باستخدام الميكروفون."); };
+                state.recognition.onstart = () => { state.isRecording = true; els.btnMic.classList.add('mic-active'); vibrate(); };
+                state.recognition.onend = () => { state.isRecording = false; els.btnMic.classList.remove('mic-active'); };
+                state.recognition.onresult = (e) => { els.input.value += " " + e.results[0][0].transcript; els.input.dispatchEvent(new Event('input')); };
                 state.recognition.start();
             }
 
-            function newChat() {
-                state.activeId = Date.now().toString();
-                state.chats.unshift({ id: state.activeId, title: 'جلسة جديدة', msgs: [], date: Date.now() });
-                els.box.innerHTML = ''; els.box.appendChild(els.welcome); els.welcome.style.display = 'flex';
-                saveData(); renderHistory(); toggleMenu(false);
-                window.speechSynthesis.cancel();
-            }
-
-            function loadChat(id) {
-                state.activeId = id; localStorage.setItem('worm_last_id', id);
-                const chat = state.chats.find(c => c.id == id);
-                if(!chat) return newChat();
-                els.box.innerHTML = ''; 
-                if(chat.msgs.length) { els.welcome.style.display = 'none'; chat.msgs.forEach(m => appendMsg(m.role, m.content)); }
-                else { els.box.appendChild(els.welcome); els.welcome.style.display = 'flex'; }
-                toggleMenu(false);
-                window.speechSynthesis.cancel();
-            }
-
-            function delChat(e, id) { 
-                if(e && e.stopPropagation) e.stopPropagation();
-                if(e && e.cancelBubble !== null) e.cancelBubble = true;
-
-                if(!confirm('هل أنت متأكد من حذف هذه المحادثة؟')) return; 
-                
-                const targetId = String(id);
-                state.chats = state.chats.filter(c => String(c.id) !== targetId); 
-                
-                saveData(); 
-                
-                if(String(state.activeId) === targetId) { newChat(); } else { renderHistory(); }
-            }
-
+            function newChat() { state.activeId = Date.now().toString(); state.chats.unshift({ id: state.activeId, title: 'جلسة جديدة', msgs: [], date: Date.now() }); els.box.innerHTML = ''; els.box.appendChild(els.welcome); els.welcome.style.display = 'flex'; saveData(); renderHistory(); toggleMenu(false); stopAudio(); }
+            function loadChat(id) { state.activeId = id; localStorage.setItem('worm_last_id', id); const chat = state.chats.find(c => c.id == id); if(!chat) return newChat(); els.box.innerHTML = ''; if(chat.msgs.length) { els.welcome.style.display = 'none'; chat.msgs.forEach(m => appendMsg(m.role, m.content)); } else { els.box.appendChild(els.welcome); els.welcome.style.display = 'flex'; } toggleMenu(false); stopAudio(); }
+            function delChat(e, id) { if(e) e.stopPropagation(); if(!confirm('حذف؟')) return; state.chats = state.chats.filter(c => String(c.id) !== String(id)); saveData(); if(String(state.activeId) === String(id)) newChat(); else renderHistory(); }
             function saveData() { localStorage.setItem('worm_chats', JSON.stringify(state.chats)); localStorage.setItem('worm_last_id', state.activeId); }
-            
-            function renderHistory() { 
-                els.histList.innerHTML = state.chats.map(c => `
-                    <div class="chat-item ${c.id == state.activeId?'active':''}" onclick="app.loadChat('${c.id}')">
-                        <span>${c.title}</span>
-                        <i class="fas fa-trash delete-chat-btn" onclick="app.delChat(event, '${c.id}')"></i>
-                    </div>
-                `).join(''); 
-            }
-
-            function toggleMenu(f) { const s = els.sidebar.classList.contains('active'); const n = f!==undefined?f:!s; els.sidebar.classList.toggle('active',n); els.overlay.classList.toggle('active',n); }
-            function setInput(t) { els.input.value = t; els.input.dispatchEvent(new Event('input')); send(); }
+            function renderHistory() { els.histList.innerHTML = state.chats.map(c => `<div class="chat-item ${c.id==state.activeId?'active':''}" onclick="app.vibrate(); app.loadChat('${c.id}')"><span>${c.title}</span><i class="fas fa-trash" onclick="app.delChat(event, '${c.id}')" style="padding:10px;color:#666"></i></div>`).join(''); }
+            function toggleMenu(f) { const n = f!==undefined?f:!els.sidebar.classList.contains('active'); els.sidebar.classList.toggle('active',n); els.overlay.classList.toggle('active',n); if(n) vibrate(); }
+            function setInput(t) { vibrate(); els.input.value = t; els.input.dispatchEvent(new Event('input')); send(); }
             function exportChat() { html2canvas(els.box, { backgroundColor: '#050505', ignoreElements: (n) => n.id === 'welcome-screen' && n.style.display === 'none' }).then(c => { const l = document.createElement('a'); l.download = `Chat-${Date.now()}.png`; l.href = c.toDataURL(); l.click(); }); }
 
-            return { init, send, newChat, loadChat, delChat, toggleMenu, toggleVoice, setInput, exportChat, toggleTTS };
+            return { init, send, newChat, loadChat, delChat, toggleMenu, toggleVoice, setInput, exportChat, toggleTTS, vibrate };
         })();
 
         document.addEventListener('DOMContentLoaded', app.init);
