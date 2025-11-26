@@ -351,7 +351,6 @@
             "G2L5K8M4P9"
         ];
 
-        // Check if already logged in previously (Session)
         if (sessionStorage.getItem('worm_auth') === 'true') {
             document.getElementById('login-overlay').style.display = 'none';
         }
@@ -362,14 +361,12 @@
             const code = input.value.trim();
 
             if (VALID_CODES.includes(code)) {
-                // Success
                 sessionStorage.setItem('worm_auth', 'true');
                 const overlay = document.getElementById('login-overlay');
                 overlay.style.transition = 'opacity 0.5s';
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.style.display = 'none', 500);
             } else {
-                // Fail
                 errorMsg.style.opacity = '1';
                 input.style.borderColor = 'red';
                 input.value = '';
@@ -380,30 +377,21 @@
             }
         }
 
-        // Allow pressing Enter to login
         document.getElementById('access-code').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                checkAccess();
-            }
+            if (e.key === 'Enter') checkAccess();
         });
-
 
         // =========================================
         // MAIN APP LOGIC
         // =========================================
 
-        // حماية إضافية
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'F12' || 
-                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || 
-                (e.ctrlKey && e.key === 'u')) {
-                e.preventDefault();
-                return false;
+            if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault(); return false;
             }
         });
         document.addEventListener('contextmenu', function(e) { e.preventDefault(); return false; });
         document.addEventListener('dragstart', function(e) { if (e.target.tagName === 'IMG' || e.target.tagName === 'A') { e.preventDefault(); } });
-        document.addEventListener('keydown', function(e) { if (e.ctrlKey && (e.key === 'n' || e.key === 'N')) { e.preventDefault(); return false; } });
 
         const app = (function() {
             const CONF = { 
@@ -412,6 +400,7 @@
             };
             
             const state = { history: [], chats: JSON.parse(localStorage.getItem('worm_chats')) || [], activeId: null, recognition: null };
+            let currentTTSBtn = null; // تتبع زر القراءة الحالي
 
             const els = { 
                 box: document.getElementById('chat-box'), input: document.getElementById('msg-input'), 
@@ -434,6 +423,7 @@
                 
                 window.addEventListener('beforeunload', function() {
                     if (state.recognition && state.isRecording) { state.recognition.stop(); }
+                    window.speechSynthesis.cancel();
                 });
             }
 
@@ -461,22 +451,15 @@
                     const sessionId = state.activeId || "auto";
                     const url = `${CONF.API}?message=${encodeURIComponent(txt)}&key=${CONF.KEY}&format=json&session_id=${sessionId}`;
 
-                    const res = await fetch(url, {
-                        method: 'GET',
-                        headers: { 'Content-Type': 'application/json' }
-                    });
-                    
+                    const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
                     document.getElementById(loadId)?.remove();
                     
                     if (!res.ok) throw new Error();
                     const data = await res.json();
                     
-                    if (!data.success) {
-                        throw new Error(data.error || "خطأ غير معروف من الخادم");
-                    }
+                    if (!data.success) throw new Error(data.error || "خطأ غير معروف");
 
                     const reply = data.response || "No response.";
-                    
                     appendMsg('bot', reply);
                     if(currentChat) { currentChat.msgs.push({ role: 'assistant', content: reply }); saveData(); }
                 } catch (err) {
@@ -520,18 +503,81 @@
                     bubble.appendChild(contentDiv);
                     div.appendChild(bubble);
 
+                    // Action Buttons (Copy & Read)
                     const actionsBar = document.createElement('div');
                     actionsBar.className = 'msg-actions';
+                    
+                    // Copy Button
                     const copyMsgBtn = document.createElement('button');
                     copyMsgBtn.className = 'msg-action-btn';
-                    copyMsgBtn.innerHTML = '<i class="far fa-copy"></i> نسخ الرد';
+                    copyMsgBtn.innerHTML = '<i class="far fa-copy"></i> نسخ';
                     copyMsgBtn.onclick = () => copyText(text, copyMsgBtn);
+                    
+                    // Read Button (NEW)
+                    const speakBtn = document.createElement('button');
+                    speakBtn.className = 'msg-action-btn';
+                    speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
+                    speakBtn.onclick = () => toggleTTS(text, speakBtn);
+
+                    actionsBar.appendChild(speakBtn);
                     actionsBar.appendChild(copyMsgBtn);
                     div.appendChild(actionsBar);
                 }
 
                 els.box.appendChild(div);
                 els.box.scrollTop = els.box.scrollHeight;
+            }
+
+            // =========================================
+            // TEXT TO SPEECH FUNCTION (NEW)
+            // =========================================
+            function toggleTTS(text, btn) {
+                const synth = window.speechSynthesis;
+
+                // Stop if currently speaking the same text
+                if (currentTTSBtn === btn && synth.speaking) {
+                    synth.cancel();
+                    btn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
+                    btn.style.color = '';
+                    currentTTSBtn = null;
+                    return;
+                }
+
+                // Stop any other active speech
+                if (synth.speaking) {
+                    synth.cancel();
+                    if (currentTTSBtn) {
+                        currentTTSBtn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
+                        currentTTSBtn.style.color = '';
+                    }
+                }
+
+                // Clean text for better speech (remove Markdown symbols)
+                const cleanText = text.replace(/[*#`_~>]/g, '');
+
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'ar-SA'; // Prefer Arabic
+                
+                // Visual Feedback
+                utterance.onstart = () => {
+                    btn.innerHTML = '<i class="fas fa-stop-circle"></i> إيقاف';
+                    btn.style.color = 'var(--accent-primary)';
+                    currentTTSBtn = btn;
+                };
+
+                utterance.onend = () => {
+                    btn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
+                    btn.style.color = '';
+                    currentTTSBtn = null;
+                };
+
+                utterance.onerror = () => {
+                    btn.innerHTML = '<i class="fas fa-volume-up"></i> قراءة';
+                    btn.style.color = '';
+                    currentTTSBtn = null;
+                };
+
+                synth.speak(utterance);
             }
 
             function appendLoader() {
@@ -546,7 +592,7 @@
             function copyText(text, btn) {
                 navigator.clipboard.writeText(text).then(() => {
                     const original = btn.innerHTML;
-                    btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ';
+                    btn.innerHTML = '<i class="fas fa-check"></i> تم';
                     btn.style.color = '#00ff00';
                     setTimeout(() => { btn.innerHTML = original; btn.style.color = ''; }, 2000);
                 });
@@ -574,6 +620,7 @@
                 state.chats.unshift({ id: state.activeId, title: 'جلسة جديدة', msgs: [], date: Date.now() });
                 els.box.innerHTML = ''; els.box.appendChild(els.welcome); els.welcome.style.display = 'flex';
                 saveData(); renderHistory(); toggleMenu(false);
+                window.speechSynthesis.cancel();
             }
 
             function loadChat(id) {
@@ -584,6 +631,7 @@
                 if(chat.msgs.length) { els.welcome.style.display = 'none'; chat.msgs.forEach(m => appendMsg(m.role, m.content)); }
                 else { els.box.appendChild(els.welcome); els.welcome.style.display = 'flex'; }
                 toggleMenu(false);
+                window.speechSynthesis.cancel();
             }
 
             function delChat(e, id) { 
@@ -597,11 +645,7 @@
                 
                 saveData(); 
                 
-                if(String(state.activeId) === targetId) {
-                    newChat(); 
-                } else {
-                    renderHistory();
-                }
+                if(String(state.activeId) === targetId) { newChat(); } else { renderHistory(); }
             }
 
             function saveData() { localStorage.setItem('worm_chats', JSON.stringify(state.chats)); localStorage.setItem('worm_last_id', state.activeId); }
@@ -619,10 +663,10 @@
             function setInput(t) { els.input.value = t; els.input.dispatchEvent(new Event('input')); send(); }
             function exportChat() { html2canvas(els.box, { backgroundColor: '#050505', ignoreElements: (n) => n.id === 'welcome-screen' && n.style.display === 'none' }).then(c => { const l = document.createElement('a'); l.download = `Chat-${Date.now()}.png`; l.href = c.toDataURL(); l.click(); }); }
 
-            return { init, send, newChat, loadChat, delChat, toggleMenu, toggleVoice, setInput, exportChat };
+            return { init, send, newChat, loadChat, delChat, toggleMenu, toggleVoice, setInput, exportChat, toggleTTS };
         })();
 
         document.addEventListener('DOMContentLoaded', app.init);
     </script>
 </body>
-</html>
+    </html>
