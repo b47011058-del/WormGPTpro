@@ -1,433 +1,1106 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" id="html-root">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#050505">
-    <meta name="robots" content="noindex, nofollow">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    
-    <title>WormGPT v2.6 PRO</title>
+    <title>WormGPT Elite 🛡️ - Connected to Database</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- الخطوط والأيقونات -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Fira+Code:wght@400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
+    <!-- مكتبات التنسيق والمعالجة -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        /* نفس التنسيقات السابقة تماماً */
-        :root { --bg-core: #050505; --accent-primary: #ff0033; --accent-glow: rgba(255, 0, 51, 0.4); --text-main: #e0e0e0; --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom); }
-        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0a0a0a; } ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; } ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
-        body { background-color: var(--bg-core); color: var(--text-main); font-family: 'Cairo', sans-serif; height: 100dvh; overflow: hidden; background-image: radial-gradient(circle at 50% 0%, #1a0005 0%, #000000 80%); -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
-        .msg-bubble, .code-wrapper { -webkit-user-select: text; user-select: text; }
-        body::after { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%); background-size: 100% 4px; pointer-events: none; z-index: 9999; opacity: 0.4; }
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100000; display: flex; flex-direction: column; align-items: center; justify-content: center; background-image: radial-gradient(circle at 50% 50%, #1a0005 0%, #000000 90%); }
-        .login-box { background: rgba(20, 0, 0, 0.8); border: 1px solid var(--accent-primary); box-shadow: 0 0 20px var(--accent-glow); padding: 30px; border-radius: 12px; text-align: center; width: 90%; max-width: 400px; backdrop-filter: blur(10px); }
-        .login-title { font-family: 'Orbitron'; color: var(--accent-primary); margin-bottom: 20px; font-size: 1.5rem; letter-spacing: 2px; }
-        .login-input { width: 100%; padding: 12px; background: #111; border: 1px solid #333; color: #fff; font-family: 'Fira Code', monospace; text-align: center; margin-bottom: 20px; border-radius: 6px; letter-spacing: 3px; font-size: 1.1rem; }
-        .login-input:focus { border-color: var(--accent-primary); box-shadow: 0 0 10px var(--accent-glow); }
-        .login-btn { background: var(--accent-primary); color: #fff; border: none; padding: 12px 20px; width: 100%; font-family: 'Cairo'; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.3s; font-size: 1rem; }
-        .login-btn:active { transform: scale(0.98); }
-        #chat-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; }
-        .chat-header { padding: calc(12px + var(--safe-top)) 15px 12px 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(5, 5, 5, 0.98); border-bottom: 1px solid #330000; backdrop-filter: blur(10px); }
-        #title { font-family: 'Orbitron', sans-serif; font-size: 1.2rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); }
-        .header-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .header-btn:active { transform: scale(0.9); background: rgba(255,0,51,0.1); }
-        #chat-box { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 30px; scroll-behavior: smooth; }
-        #welcome-screen { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.9; overflow-y: auto; padding: 20px 0; }
-        #welcome-screen i.main-icon { font-size: 4rem; color: var(--accent-primary); margin-bottom: 20px; animation: pulse 3s infinite; }
-        .suggestions { display: grid; gap: 10px; width: 100%; max-width: 650px; margin-top: 30px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); padding: 0 10px; }
-        .sug-card { background: rgba(255,255,255,0.03); border: 1px solid #333; padding: 14px; border-radius: 10px; font-size: 0.9rem; display: flex; gap: 10px; align-items: center; cursor: pointer; transition: 0.2s; }
-        .sug-card:active { background: rgba(255, 0, 51, 0.15); border-color: var(--accent-primary); transform: scale(0.98); }
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .message { max-width: 92%; margin-bottom: 20px; display: flex; flex-direction: column; animation: slideIn 0.3s ease-out; }
-        .msg-bubble { padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.6; word-wrap: break-word; }
+        /* ==================== CSS VARIABLES & RESET ==================== */
+        :root {
+            --bg-core: #050505;
+            --accent-primary: #ff0033;
+            --accent-glow: rgba(255, 0, 51, 0.4);
+            --text-main: #e0e0e0;
+            --admin-color: #00ff88;
+            --glass: rgba(20, 20, 20, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: var(--bg-core); color: var(--text-main);
+            font-family: 'Cairo', sans-serif; height: 100dvh; overflow: hidden;
+            background-image: radial-gradient(circle at 50% 0%, #1a0005 0%, #000000 80%);
+            user-select: none;
+        }
+
+        body::after {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px; pointer-events: none; z-index: 9999; opacity: 0.6;
+        }
+
+        /* ==================== LAYOUT ==================== */
+        #chat-wrapper { width: 100%; height: 100%; display: flex; flex-direction: column; position: relative; z-index: 10; transition: filter 0.3s; }
+        body.blur-active #chat-wrapper { filter: blur(8px); pointer-events: none; }
+
+        .chat-header {
+            padding: 15px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(10, 0, 0, 0.95); border-bottom: 1px solid #330000;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+        }
+        #title { font-family: 'Orbitron'; font-size: 1.2rem; color: var(--accent-primary); text-shadow: 0 0 10px var(--accent-glow); letter-spacing: 2px; }
+        
+        .header-btn { 
+            width: 40px; height: 40px; background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 10px; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+        }
+        .header-btn:active { transform: scale(0.95); }
+        
+        #admin-btn-toggle { display: none; border-color: var(--admin-color); color: var(--admin-color); box-shadow: 0 0 10px rgba(0, 255, 136, 0.2); }
+        
+        #language-selector { 
+            position: relative; background: rgba(255,255,255,0.05); 
+            border: 1px solid rgba(255,255,255,0.1); color: #ccc; border-radius: 10px; 
+            padding: 8px 12px; cursor: pointer; font-size: 0.9rem; transition: 0.2s;
+        }
+        #language-selector:hover { background: rgba(255,255,255,0.08); }
+
+        #chat-box { flex: 1; overflow-y: auto; padding: 15px; scroll-behavior: smooth; }
+        
+        .message { max-width: 92%; margin-bottom: 20px; display: flex; flex-direction: column; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .msg-bubble { padding: 12px 16px; border-radius: 15px; font-size: 0.95rem; line-height: 1.6; user-select: text; position: relative; overflow: hidden; }
+        
         .msg-user { align-self: flex-end; margin-left: auto; }
-        .msg-user .msg-bubble { background: linear-gradient(145deg, #80001a, #4d000f); color: #fff; border-bottom-left-radius: 2px; }
+        .msg-user .msg-bubble { background: linear-gradient(145deg, #80001a, #4d000f); color: #fff; border-bottom-left-radius: 4px; border: 1px solid #660011; }
+        
         .msg-bot { align-self: flex-start; margin-right: auto; width: 100%; }
-        .msg-bot .msg-bubble { background: #111; border: 1px solid #2a2a2a; color: #ddd; border-bottom-right-radius: 2px; }
-        .msg-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 5px 10px; margin-top: 5px; opacity: 0.8; }
-        .msg-action-btn { background: rgba(255,255,255,0.05); border: 1px solid #333; color: #aaa; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: 'Cairo'; padding: 6px 12px; border-radius: 15px; transition: 0.2s; }
-        .msg-action-btn:active { transform: scale(0.95); background: rgba(255,0,51,0.2); color: #fff; }
-        .code-wrapper { margin: 12px 0; border: 1px solid #333; border-radius: 8px; overflow: hidden; background: #1e1e1e; direction: ltr; text-align: left; }
-        .code-header { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #252525; border-bottom: 1px solid #333; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa; }
+        .msg-bot .msg-bubble { background: #111; border: 1px solid #333; border-bottom-right-radius: 4px; color: #ddd; }
+
+        .code-wrapper { margin: 12px 0; border: 1px solid #444; border-radius: 8px; overflow: hidden; background: #151515; direction: ltr; text-align: left; }
+        .code-header {
+            display: flex; justify-content: space-between; align-items: center; padding: 8px 12px;
+            background: #222; border-bottom: 1px solid #444; font-family: 'Fira Code'; font-size: 0.8rem; color: #aaa;
+        }
+        .copy-code-btn { 
+            border: none; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; 
+            font-size: 0.75rem; padding: 4px 10px; border-radius: 4px; transition: 0.2s;
+        }
+        .copy-code-btn:hover { background: var(--accent-primary); }
         pre { padding: 15px; overflow-x: auto; margin: 0; }
-        code { font-family: 'Fira Code', monospace; font-size: 0.85rem; }
-        .input-wrapper { background: rgba(5, 5, 5, 0.98); border-top: 1px solid #222; padding: 10px; padding-bottom: calc(10px + var(--safe-bottom)); position: sticky; bottom: 0; z-index: 30; }
-        .input-box { display: flex; align-items: flex-end; gap: 8px; background: #151515; border-radius: 24px; padding: 8px 12px; border: 1px solid #333; }
+        code { font-family: 'Fira Code'; font-size: 0.85rem; }
+
+        .msg-actions {
+            display: flex; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .msg-action-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            color: #aaa; padding: 6px 12px; border-radius: 6px; font-size: 0.75rem;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .msg-action-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .msg-action-btn:active { transform: scale(0.95); }
+        .msg-action-btn.playing { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); }
+
+        .input-wrapper { background: rgba(0,0,0,0.95); border-top: 1px solid #222; padding: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+        .input-box { display: flex; align-items: flex-end; gap: 8px; background: #111; border-radius: 25px; padding: 8px 12px; border: 1px solid #333; transition: border-color 0.3s; }
         .input-box:focus-within { border-color: var(--accent-primary); }
-        textarea { flex: 1; background: transparent; border: none; color: #fff; padding: 8px 4px; font-size: 1rem; max-height: 120px; resize: none; font-family: 'Cairo'; }
-        .action-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: #777; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; transition: 0.2s; }
-        .action-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.1); }
-        .send-btn { background: var(--accent-primary); color: white; margin-bottom: 2px; box-shadow: 0 0 10px rgba(255,0,51,0.3); }
-        .send-btn:disabled { background: #333; color: #555; box-shadow: none; }
-        .mic-active { color: #ff0033 !important; animation: micPulse 1s infinite; }
-        @keyframes micPulse { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        #sidebar { position: fixed; top: 0; right: 0; width: 85%; max-width: 320px; height: 100%; background: #0a0a0a; border-left: 1px solid #222; z-index: 100; transform: translateX(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; padding-top: var(--safe-top); }
-        #sidebar.active { transform: translateX(0); }
-        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 90; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(4px); }
-        .overlay.active { opacity: 1; pointer-events: auto; }
-        .chat-item { padding: 16px; border-bottom: 1px solid #151515; color: #bbb; display: flex; justify-content: space-between; align-items: center; }
-        .chat-item:active { background: #1a1a1a; }
+        
+        textarea { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Cairo'; resize: none; font-size: 1rem; max-height: 120px; padding: 8px 0; }
+        .action-btn { background: transparent; border: none; color: #666; font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s; }
+        .action-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .send-btn:not(:disabled) { color: var(--accent-primary); }
+        .mic-active { animation: pulse 1s infinite; background: rgba(255,0,51,0.1); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .login-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9998; 
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .login-modal.active { opacity: 1; pointer-events: all; }
+        .login-box {
+            background: #111; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px;
+            border: 1px solid #333; box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+        }
+        .login-logo { text-align: center; margin-bottom: 30px; }
+        .login-logo i { font-size: 3rem; color: var(--accent-primary); }
+        .login-title { text-align: center; font-family: 'Orbitron'; font-size: 1.5rem; color: var(--accent-primary); margin-bottom: 10px; }
+        .login-subtitle { text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 30px; }
+        
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #888; }
+        .input-group input { 
+            width: 100%; padding: 12px; background: #0a0a0a; border: 1px solid #333; 
+            border-radius: 10px; color: #fff; font-family: 'Cairo'; font-size: 1rem; transition: 0.2s;
+        }
+        .input-group input:focus { border-color: var(--accent-primary); }
+        
+        .btn-primary {
+            width: 100%; padding: 14px; background: var(--accent-primary); border: none; 
+            border-radius: 10px; color: #fff; font-family: 'Cairo'; font-size: 1rem; 
+            font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 10px;
+        }
+        .btn-primary:hover { background: #cc0029; transform: translateY(-2px); }
+        .btn-primary:active { transform: scale(0.98); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .admin-panel {
+            position: fixed; top: 0; right: -350px; width: 350px; height: 100%; background: #0a0a0a;
+            border-left: 1px solid #333; z-index: 9999; transition: right 0.3s; padding: 20px;
+            overflow-y: auto; box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+        }
+        .admin-panel.active { right: 0; }
+        .admin-panel h3 { color: var(--admin-color); margin-bottom: 20px; font-family: 'Orbitron'; }
+        .admin-input { width: 100%; padding: 10px; background: #111; border: 1px solid #333; border-radius: 8px; color: #fff; margin-bottom: 10px; }
+        .admin-btn { width: 100%; padding: 10px; background: rgba(255,0,51,0.1); border: 1px solid var(--accent-primary); color: var(--accent-primary); border-radius: 8px; cursor: pointer; margin-bottom: 10px; transition: 0.2s; }
+        .admin-btn:hover { background: var(--accent-primary); color: #fff; }
+
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .overlay.active { opacity: 1; pointer-events: all; }
+
+        #sidebar {
+            position: fixed; top: 0; left: -350px; width: 350px; height: 100%; background: #0a0a0a;
+            border-right: 1px solid #333; z-index: 101; transition: left 0.3s; overflow-y: auto;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+        }
+        #sidebar.active { left: 0; }
     </style>
 </head>
 <body>
-    
-    <div id="login-overlay">
+    <!-- Modal تسجيل الدخول -->
+    <div id="login-modal" class="login-modal active">
         <div class="login-box">
-            <i class="fas fa-fingerprint" style="font-size: 3rem; color: #ff0033; margin-bottom: 15px;"></i>
-            <div class="login-title">ACCESS CONTROL</div>
-            <input type="text" id="access-code" class="login-input" placeholder="X-X-X-X-X" autocomplete="off">
-            <button onclick="checkAccess()" class="login-btn">دخول للنظام</button>
-            <div id="login-error" class="error-msg" style="color:#f00; opacity:0; margin-top:10px">الكود غير صحيح</div>
+            <div class="login-logo"><i class="fas fa-biohazard"></i></div>
+            <h2 class="login-title">WORM<span style="color:#fff">GPT</span></h2>
+            <p class="login-subtitle">Database-Connected Edition</p>
+            
+            <div id="step-1">
+                <div class="input-group">
+                    <label data-i18n="username">Username</label>
+                    <input type="text" id="login-user" data-i18n="enterName" placeholder="Enter your name">
+                </div>
+                <div class="input-group">
+                    <label>Telegram ID</label>
+                    <input type="text" id="login-id" data-i18n="enterTelegramId" placeholder="Enter Telegram ID">
+                </div>
+                <button onclick="auth.requestOtp()" class="btn-primary" data-i18n="getOtp">Get OTP Code</button>
+            </div>
+
+            <div id="step-2" style="display:none;">
+                <div class="input-group">
+                    <label data-i18n="enterOtp">Enter OTP Code</label>
+                    <input type="text" id="login-otp" data-i18n="enterOtp" placeholder="Enter OTP Code">
+                </div>
+                <button onclick="auth.verifyOtp()" class="btn-primary" data-i18n="login">Login</button>
+                <button onclick="document.getElementById('step-1').style.display='block'; document.getElementById('step-2').style.display='none';" style="background:transparent; border:1px solid #333; margin-top:10px;" class="btn-primary" data-i18n="back">Back</button>
+            </div>
+            
+            <div style="margin-top:20px; display:flex; justify-content:space-between; font-size:0.75rem; color:#555;">
+                <span>System Status: Online</span>
+                <span>Version: 4.0.0 (Cloud DB)</span>
+            </div>
         </div>
     </div>
 
+    <!-- لوحة الأدمن -->
+    <div id="admin-panel" class="admin-panel">
+        <h3><i class="fas fa-shield-alt"></i> Admin Control</h3>
+        <input type="text" id="admin-target-id" class="admin-input" placeholder="Target Telegram ID">
+        <button onclick="admin.banUser()" class="admin-btn">
+            <i class="fas fa-ban"></i> تنفيذ الحظر (Deep Ban)
+        </button>
+    </div>
+
+    <!-- واجهة الشات -->
     <div id="chat-wrapper">
         <header class="chat-header">
-            <button onclick="app.vibrate(); app.newChat()" class="header-btn"><i class="fas fa-plus"></i></button>
+            <div style="display:flex; gap:10px;">
+                <button onclick="location.reload()" class="header-btn"><i class="fas fa-redo-alt"></i></button>
+                <button id="admin-btn-toggle" onclick="admin.togglePanel()" class="header-btn"><i class="fas fa-user-shield"></i></button>
+            </div>
             <div id="title">WORM<span style="color:#fff">GPT</span></div>
-            <button onclick="app.vibrate(); app.toggleMenu()" class="header-btn"><i class="fas fa-bars"></i></button>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <select id="language-selector" onchange="i18n.changeLang(this.value)">
+                    <option value="ar">🇸🇦 ع</option>
+                    <option value="en">🇬🇧 En</option>
+                    <option value="fr">🇫🇷 Fr</option>
+                    <option value="es">🇪🇸 Es</option>
+                </select>
+                <button onclick="app.toggleMenu()" class="header-btn"><i class="fas fa-bars"></i></button>
+            </div>
         </header>
-        
+
         <div id="chat-box">
-            <div id="welcome-screen">
-                <i class="fas fa-biohazard main-icon"></i>
-                <h2 style="font-family:'Orbitron'">WormGPT v2.6 PRO </h2>
-                <p style="color:#666; margin-bottom:20px;">نظام اختراق ومحادثة مشفر</p>
-                
-                <div class="suggestions">
-                    <div class="sug-card" onclick="app.setInput('أكتب كود بايثون لفحص المنافذ المفتوحة (Port Scanner)')">
-                        <i class="fab fa-python" style="color:#ffcc00"></i> <span>فحص الشبكات (Python)</span>
-                    </div>
-                    <div class="sug-card" onclick="app.setInput('كيفية استغلال ثغرات نواة Linux القديمة')">
-                        <i class="fab fa-linux" style="color:#fff"></i> <span>استغلال ثغرات Kernel</span>
-                    </div>
-                    <div class="sug-card" onclick="app.setInput('شرح كيفية تنفيذ هجوم SQL Injection يدوياً')">
-                        <i class="fas fa-database" style="color:#00ccff"></i> <span>حقن قواعد البيانات (SQLi)</span>
-                    </div>
-                    <div class="sug-card" onclick="app.setInput('كيفية تحليل ملف EXE مشبوه واستخراج النصوص منه')">
-                        <i class="fas fa-microchip" style="color:#ff0033"></i> <span>الهندسة العكسية</span>
-                    </div>
-                    <div class="sug-card" onclick="app.setInput('أدوات كسر حماية WPA2 Handshake')">
-                        <i class="fas fa-wifi" style="color:#00ff99"></i> <span>اختراق شبكات WiFi</span>
-                    </div>
+            <div id="welcome-screen" style="text-align:center; padding-top:60px; opacity:0.6;">
+                <div style="width:80px; height:80px; background:var(--accent-primary); border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; box-shadow:0 0 30px var(--accent-glow);">
+                    <i class="fas fa-biohazard" style="font-size:2.5rem; color:#fff;"></i>
+                </div>
+                <h3 style="font-family:'Orbitron'; margin-bottom:10px;" data-i18n="welcomeTitle">WormGPT V4 Cloud DB</h3>
+                <p style="font-size:0.9rem;" data-i18n="welcomeSubtitle">Secure & Database-Connected</p>
+                <div id="limit-badge" style="margin-top:20px; font-size:0.8rem; background:#111; display:inline-block; padding:5px 15px; border-radius:20px; border:1px solid #333;">
+                    <span data-i18n="limitFree">Limit: 10 Messages / Day</span>
                 </div>
             </div>
         </div>
-        
+
         <div class="input-wrapper">
             <form class="input-box" onsubmit="event.preventDefault(); app.send();">
-                <button type="button" onclick="app.vibrate(); app.exportChat()" class="action-btn"><i class="fas fa-camera"></i></button>
-                <button type="button" id="btn-mic" onclick="app.vibrate(); app.toggleVoice()" class="action-btn"><i class="fas fa-microphone"></i></button>
-                <textarea id="msg-input" placeholder="اكتب الأمر هنا..." rows="1"></textarea>
-                <button type="submit" id="btn-send" class="action-btn send-btn" disabled><i class="fas fa-arrow-up"></i></button>
+                <button type="button" onclick="app.exportChat()" class="action-btn"><i class="fas fa-camera"></i></button>
+                <button type="button" id="btn-mic" onclick="app.toggleVoice()" class="action-btn"><i class="fas fa-microphone"></i></button>
+                <textarea id="msg-input" data-i18n="typeMessage" placeholder="Type your message..." rows="1"></textarea>
+                <button type="submit" id="btn-send" class="action-btn send-btn" disabled><i class="fas fa-paper-plane"></i></button>
             </form>
+            <div style="text-align:center; font-size:0.7rem; color:#555; margin-top:8px;">
+                <span data-i18n="dailyCounter">Daily Counter</span>: <span id="usage-counter" style="color:var(--text-main); font-weight:bold;">0</span> / <span id="usage-limit">10</span>
+                <span style="margin:0 5px;">|</span>
+                <span id="account-type" style="color:#888;">Free</span>
+                <span style="margin:0 5px;">|</span>
+                <span style="color:var(--admin-color);">DB Connected ✓</span>
+            </div>
         </div>
     </div>
 
+    <!-- القائمة الجانبية -->
     <div class="overlay" onclick="app.toggleMenu()"></div>
     <nav id="sidebar">
-        <div style="padding:20px; border-bottom:1px solid #222; color:var(--accent-primary); font-weight:bold; display:flex; justify-content:space-between;">
-            <span>السجلات</span> <i class="fas fa-times" onclick="app.toggleMenu()" style="cursor:pointer"></i>
+        <div style="padding:25px; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center;">
+            <span style="color:var(--accent-primary); font-weight:bold; font-size:1.2rem;">الملف الشخصي</span>
+            <button onclick="app.toggleMenu()" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer;"><i class="fas fa-times"></i></button>
         </div>
-        <div id="history-list" style="flex:1; overflow-y:auto;"></div>
+        <div style="padding:25px; color:#aaa;">
+            <div style="margin-bottom:20px;">
+                <label style="font-size:0.7rem; color:#555; display:block; margin-bottom:5px;" data-i18n="username">Username</label>
+                <div style="color:#fff; font-size:1.1rem;"><i class="fas fa-user-circle" style="color:var(--accent-primary)"></i> <span id="side-user">---</span></div>
+            </div>
+            <div style="margin-bottom:30px;">
+                <label style="font-size:0.7rem; color:#555; display:block; margin-bottom:5px;" data-i18n="userId">User ID</label>
+                <div style="font-family:'Fira Code'; color:#fff;"><i class="fas fa-fingerprint" style="color:var(--accent-primary)"></i> <span id="side-id">---</span></div>
+            </div>
+            
+            <div style="padding:15px; background:#111; border-radius:10px; border:1px solid #222; margin-bottom:20px;">
+                <p style="font-size:0.8rem; color:#666; margin-bottom:5px;" data-i18n="accountStatus">Account Status</p>
+                <p style="color:#0f0; font-size:0.9rem;" data-i18n="activeSecure">● Active & Secure</p>
+            </div>
+
+            <button onclick="auth.logout()" style="width:100%; padding:12px; background:rgba(255,0,0,0.1); border:1px solid rgba(255,0,0,0.3); color:#f55; border-radius:8px; cursor:pointer; transition:0.2s;">
+                <i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Logout</span>
+            </button>
+        </div>
     </nav>
 
+    <!-- ==================== JAVASCRIPT CORE ==================== -->
     <script>
-        // =========================================
-        // ACCESS CONTROL SYSTEM
-        // =========================================
-        const VALID_CODES = ["X7K9M2P4L1", "R5D8W3Q9Z2", "H4J6N8B2V5", "Y9T3F7C1X6", "G2L5K8M4P9"];
-        
-        if (sessionStorage.getItem('worm_auth') === 'true') {
-            document.getElementById('login-overlay').style.display = 'none';
-        }
-
-        function checkAccess() {
-            const input = document.getElementById('access-code');
-            const errorMsg = document.getElementById('login-error');
-            const code = input.value.trim();
-            if(navigator.vibrate) navigator.vibrate(50);
-
-            if (VALID_CODES.includes(code)) {
-                sessionStorage.setItem('worm_auth', 'true');
-                const overlay = document.getElementById('login-overlay');
-                overlay.style.transition = 'opacity 0.5s';
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 500);
-            } else {
-                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                errorMsg.style.opacity = '1';
-                input.style.borderColor = 'red';
-                input.value = '';
-                setTimeout(() => { errorMsg.style.opacity = '0'; input.style.borderColor = '#333'; }, 2000);
+        // ================= TRANSLATIONS =================
+        const TRANSLATIONS = {
+            ar: {
+                title: "WormGPT Elite 🛡️",
+                username: "اسم المستخدم",
+                userId: "المعرف (ID)",
+                accountStatus: "حالة الحساب",
+                activeSecure: "● نشط وآمن",
+                logout: "تسجيل خروج",
+                pro: "⭐ Pro",
+                free: "Free",
+                admin: "👑 Admin",
+                limitUnlimited: "الحد: غير محدود ∞",
+                limitFree: "الحد: 10 رسائل / يوم",
+                dailyLimitReached: "⛔ انتهى الحد اليومي. ترقى إلى Pro للحصول على رسائل غير محدودة!",
+                accountBanned: "⛔ حسابك محظور",
+                enterName: "أدخل اسمك",
+                enterTelegramId: "أدخل معرف تيليجرام",
+                getOtp: "احصل على كود OTP",
+                enterOtp: "أدخل كود OTP المُرسل",
+                login: "تسجيل دخول",
+                loginTitle: "🔐 مطلوب تسجيل الدخول",
+                typeMessage: "اكتب رسالتك...",
+                send: "إرسال",
+                copy: "نسخ",
+                copyMessage: "نسخ الإجابة",
+                listen: "استماع",
+                noTextToRead: "لا يوجد نص للقراءة",
+                audioError: "خطأ في تشغيل الصوت",
+                language: "اللغة",
+                dailyCounter: "العداد اليومي",
+                welcomeTitle: "WormGPT V4 Cloud DB",
+                welcomeSubtitle: "آمن ومتصل بقاعدة البيانات",
+                back: "رجوع"
+            },
+            en: {
+                title: "WormGPT Elite 🛡️",
+                username: "Username",
+                userId: "User ID",
+                accountStatus: "Account Status",
+                activeSecure: "● Active & Secure",
+                logout: "Logout",
+                pro: "⭐ Pro",
+                free: "Free",
+                admin: "👑 Admin",
+                limitUnlimited: "Limit: Unlimited ∞",
+                limitFree: "Limit: 10 Messages / Day",
+                dailyLimitReached: "⛔ Daily limit reached. Upgrade to Pro for unlimited messages!",
+                accountBanned: "⛔ Your account is banned",
+                enterName: "Enter your name",
+                enterTelegramId: "Enter Telegram ID",
+                getOtp: "Get OTP Code",
+                enterOtp: "Enter OTP Code",
+                login: "Login",
+                loginTitle: "🔐 Login Required",
+                typeMessage: "Type your message...",
+                send: "Send",
+                copy: "Copy",
+                copyMessage: "Copy Answer",
+                listen: "Listen",
+                noTextToRead: "No text to read",
+                audioError: "Error playing audio",
+                language: "Language",
+                dailyCounter: "Daily Counter",
+                welcomeTitle: "WormGPT V4 Cloud DB",
+                welcomeSubtitle: "Secure & Database-Connected",
+                back: "Back"
+            },
+            fr: {
+                title: "WormGPT Elite 🛡️",
+                username: "Nom d'utilisateur",
+                userId: "ID utilisateur",
+                accountStatus: "État du compte",
+                activeSecure: "● Actif et sécurisé",
+                logout: "Se déconnecter",
+                pro: "⭐ Pro",
+                free: "Gratuit",
+                admin: "👑 Admin",
+                limitUnlimited: "Limite: Illimité ∞",
+                limitFree: "Limite: 10 messages / jour",
+                dailyLimitReached: "⛔ Limite quotidienne atteinte. Passez à Pro pour des messages illimités!",
+                accountBanned: "⛔ Votre compte est banni",
+                enterName: "Entrez votre nom",
+                enterTelegramId: "Entrez l'ID Telegram",
+                getOtp: "Obtenir le code OTP",
+                enterOtp: "Entrez le code OTP",
+                login: "Connexion",
+                loginTitle: "🔐 Connexion requise",
+                typeMessage: "Tapez votre message...",
+                send: "Envoyer",
+                copy: "Copier",
+                copyMessage: "Copier la réponse",
+                listen: "Écouter",
+                noTextToRead: "Aucun texte à lire",
+                audioError: "Erreur de lecture audio",
+                language: "Langue",
+                dailyCounter: "Compteur quotidien",
+                welcomeTitle: "WormGPT V4 Cloud DB",
+                welcomeSubtitle: "Sécurisé et connecté à la base de données",
+                back: "Retour"
+            },
+            es: {
+                title: "WormGPT Elite 🛡️",
+                username: "Nombre de usuario",
+                userId: "ID de usuario",
+                accountStatus: "Estado de cuenta",
+                activeSecure: "● Activo y seguro",
+                logout: "Cerrar sesión",
+                pro: "⭐ Pro",
+                free: "Gratis",
+                admin: "👑 Admin",
+                limitUnlimited: "Límite: Ilimitado ∞",
+                limitFree: "Límite: 10 mensajes / día",
+                dailyLimitReached: "⛔ Límite diario alcanzado. ¡Actualiza a Pro para mensajes ilimitados!",
+                accountBanned: "⛔ Tu cuenta está baneada",
+                enterName: "Ingresa tu nombre",
+                enterTelegramId: "Ingresa ID de Telegram",
+                getOtp: "Obtener código OTP",
+                enterOtp: "Ingresa el código OTP",
+                login: "Iniciar sesión",
+                loginTitle: "🔐 Inicio de sesión requerido",
+                typeMessage: "Escribe tu mensaje...",
+                send: "Enviar",
+                copy: "Copiar",
+                copyMessage: "Copiar respuesta",
+                listen: "Escuchar",
+                noTextToRead: "No hay texto para leer",
+                audioError: "Error al reproducir audio",
+                language: "Idioma",
+                dailyCounter: "Contador diario",
+                welcomeTitle: "WormGPT V4 Cloud DB",
+                welcomeSubtitle: "Seguro y conectado a base de datos",
+                back: "Volver"
             }
-        }
-        document.getElementById('access-code').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAccess(); });
+        };
 
-        // =========================================
-        // MAIN APP LOGIC
-        // =========================================
-        const app = (function() {
-            const CONF = { API: "https://mtimpbkuwznteintrvqk.supabase.co/functions/v1/api-chat", KEY: "wgpt_orfxa6l3mpncnaco7fk3hgi6xzmrdr2w" };
-            const state = { history: [], chats: JSON.parse(localStorage.getItem('worm_chats')) || [], activeId: null, recognition: null };
+        // ================= i18n SYSTEM =================
+        const i18n = (function() {
+            let currentLang = 'ar';
             
-            // متغيرات الصوت الجديدة
-            let audioPlayer = null;
-            let audioQueue = [];
-            let isPlaying = false;
-            let currentTTSBtn = null;
+            function detectBrowserLang() {
+                const browserLang = navigator.language || navigator.userLanguage;
+                const langCode = browserLang.split('-')[0].toLowerCase();
+                
+                // Supported languages: ar, en, fr, es
+                if (['ar', 'en', 'fr', 'es'].includes(langCode)) {
+                    return langCode;
+                }
+                return 'en'; // Default to English if not supported
+            }
+            
+            function init() {
+                const savedLang = localStorage.getItem('wormgpt_lang');
+                currentLang = savedLang || detectBrowserLang();
+                
+                document.getElementById('language-selector').value = currentLang;
+                updateUI();
+            }
+            
+            function changeLang(lang) {
+                currentLang = lang;
+                localStorage.setItem('wormgpt_lang', lang);
+                updateUI();
+            }
+            
+            function updateUI() {
+                const t = TRANSLATIONS[currentLang];
+                const htmlRoot = document.getElementById('html-root');
+                
+                // Update HTML attributes
+                htmlRoot.setAttribute('lang', currentLang);
+                htmlRoot.setAttribute('dir', currentLang === 'ar' ? 'rtl' : 'ltr');
+                
+                // Update all text elements with data-i18n attribute
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (t[key]) {
+                        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                            el.placeholder = t[key];
+                        } else {
+                            el.innerHTML = t[key];
+                        }
+                    }
+                });
+                
+                // Update title
+                document.getElementById('title').textContent = t.title;
+            }
+            
+            function t(key) {
+                return TRANSLATIONS[currentLang][key] || key;
+            }
+            
+            return { init, changeLang, t, get currentLang() { return currentLang; } };
+        })();
 
-            const els = { 
-                box: document.getElementById('chat-box'), input: document.getElementById('msg-input'), 
-                btnSend: document.getElementById('btn-send'), btnMic: document.getElementById('btn-mic'),
-                welcome: document.getElementById('welcome-screen'), sidebar: document.getElementById('sidebar'), 
-                overlay: document.querySelector('.overlay'), histList: document.getElementById('history-list')
+        // ================= CONFIGURATION =================
+        const CONFIG = {
+            BOT_TOKEN: "8065976642:AAHBR_1TysHIfQ-UwMjgrgYsohDzMjXPc_0",
+            ADMIN_ID: "7845383853",
+            DAILY_LIMIT_FREE: 10,
+            DAILY_LIMIT_PRO: Infinity, // Pro users have unlimited messages
+            API_URL: "https://mtimpbkuwznteintrvqk.supabase.co/functions/v1/api-chat",
+            API_KEY: "wgpt_22x9whmnh5116q99plbn0s",
+            // Supabase Config
+            SUPABASE_URL: "https://crrotjvxzrldiugfbsvq.supabase.co",
+            SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNycm90anZ4enJsZGl1Z2Zic3ZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQyNzg4MzcsImV4cCI6MjA3OTg1NDgzN30.QBQZOt0klrEnPllHa6GxleesfzVKUEn75gEiTHh9x1s"
+        };
+
+        const BLACKLIST = {
+            HARDCODED: ["11111111", "00000000", "7530861312"]
+        };
+
+        // Initialize Supabase Client
+        const supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+        // ================= DATABASE SYNC =================
+        const DB = (function() {
+            async function syncUser(telegramId, username) {
+                try {
+                    const { data, error } = await supabase
+                        .from('wormgpt_users')
+                        .select('*')
+                        .eq('telegram_id', telegramId)
+                        .maybeSingle();
+
+                    if (error) throw error;
+
+                    if (!data) {
+                        // Create new user
+                        const { data: newUser, error: insertError } = await supabase
+                            .from('wormgpt_users')
+                            .insert({ telegram_id: telegramId, username })
+                            .select()
+                            .single();
+                        
+                        if (insertError) throw insertError;
+                        return newUser;
+                    }
+
+                    // Check if daily reset needed
+                    const today = new Date().toISOString().split('T')[0];
+                    if (data.last_reset_date !== today) {
+                        const { data: updatedUser } = await supabase
+                            .from('wormgpt_users')
+                            .update({ daily_count: 0, last_reset_date: today })
+                            .eq('id', data.id)
+                            .select()
+                            .single();
+                        return updatedUser;
+                    }
+
+                    return data;
+                } catch (error) {
+                    console.error('DB Sync Error:', error);
+                    return null;
+                }
+            }
+
+            async function incrementCount(telegramId) {
+                try {
+                    const { data: user } = await supabase
+                        .from('wormgpt_users')
+                        .select('*')
+                        .eq('telegram_id', telegramId)
+                        .single();
+
+                    if (!user) return;
+
+                    const { data } = await supabase
+                        .from('wormgpt_users')
+                        .update({ daily_count: user.daily_count + 1 })
+                        .eq('id', user.id)
+                        .select()
+                        .single();
+
+                    return data;
+                } catch (error) {
+                    console.error('Increment Error:', error);
+                }
+            }
+
+            async function banUser(telegramId) {
+                try {
+                    await supabase
+                        .from('wormgpt_users')
+                        .update({ is_banned: true })
+                        .eq('telegram_id', telegramId);
+                } catch (error) {
+                    console.error('Ban Error:', error);
+                }
+            }
+
+            async function saveConversation(telegramId, messages) {
+                try {
+                    const { data: existing } = await supabase
+                        .from('wormgpt_conversations')
+                        .select('id')
+                        .eq('telegram_id', telegramId)
+                        .maybeSingle();
+
+                    if (existing) {
+                        await supabase
+                            .from('wormgpt_conversations')
+                            .update({ messages })
+                            .eq('id', existing.id);
+                    } else {
+                        const { data: user } = await supabase
+                            .from('wormgpt_users')
+                            .select('id')
+                            .eq('telegram_id', telegramId)
+                            .single();
+
+                        if (user) {
+                            await supabase
+                                .from('wormgpt_conversations')
+                                .insert({ user_id: user.id, telegram_id, messages });
+                        }
+                    }
+                } catch (error) {
+                    console.error('Save Conversation Error:', error);
+                }
+            }
+
+            return { syncUser, incrementCount, banUser, saveConversation };
+        })();
+
+        // ================= SYSTEM MEMORY (Cloud-Based) =================
+        const SysMemory = (function() {
+            let RAM = { c: 0, d: '', banned: false, uid: '', isPro: false, proExpiresAt: null, isAdmin: false };
+
+            async function init(telegramId) {
+                const username = localStorage.getItem('wgpt_u_name') || 'User';
+                const userData = await DB.syncUser(telegramId, username);
+                
+                if (userData) {
+                    // Check if Pro expired
+                    let isPro = userData.is_pro;
+                    if (isPro && userData.pro_expires_at) {
+                        const now = new Date();
+                        const expires = new Date(userData.pro_expires_at);
+                        if (now > expires) {
+                            isPro = false;
+                            // Deactivate pro in DB
+                            await supabase
+                                .from('wormgpt_users')
+                                .update({ is_pro: false, pro_expires_at: null })
+                                .eq('telegram_id', telegramId);
+                        }
+                    }
+
+                    RAM = {
+                        c: userData.daily_count,
+                        d: userData.last_reset_date,
+                        banned: userData.is_banned,
+                        uid: telegramId,
+                        isPro: isPro,
+                        proExpiresAt: userData.pro_expires_at,
+                        isAdmin: userData.is_admin || false
+                    };
+                }
+            }
+
+            function check() {
+                if (RAM.banned) return { ok: false, count: 999, banned: true };
+                
+                // Pro users have unlimited messages
+                const limit = RAM.isPro ? Infinity : CONFIG.DAILY_LIMIT_FREE;
+                
+                // Admin always has access
+                if (RAM.isAdmin || RAM.uid === CONFIG.ADMIN_ID) {
+                    return { ok: true, count: RAM.c, isPro: RAM.isPro, limit: limit };
+                }
+                
+                // Pro users have no limit
+                if (RAM.isPro) {
+                    return { ok: true, count: RAM.c, isPro: RAM.isPro, limit: limit };
+                }
+                
+                // Free users check limit
+                if (RAM.c >= limit) {
+                    return { ok: false, count: RAM.c, isPro: RAM.isPro, limit: limit };
+                }
+                
+                return { ok: true, count: RAM.c, isPro: RAM.isPro, limit: limit };
+            }
+
+            async function inc() {
+                RAM.c++;
+                const updated = await DB.incrementCount(RAM.uid);
+                if (updated) RAM.c = updated.daily_count;
+                return RAM.c;
+            }
+
+            async function banUser() {
+                RAM.banned = true;
+                await DB.banUser(RAM.uid);
+            }
+
+            return { init, check, inc, banUser, getData: () => RAM };
+        })();
+
+        // ================= AUTH SYSTEM =================
+        const auth = (function() {
+            let tempOtp = null;
+            const ui = { 
+                modal: document.getElementById('login-modal'), 
+                s1: document.getElementById('step-1'), 
+                s2: document.getElementById('step-2'), 
+                u: document.getElementById('login-user'), 
+                i: document.getElementById('login-id'), 
+                o: document.getElementById('login-otp') 
             };
 
-            marked.setOptions({ breaks: true, highlight: (code, lang) => highlight.highlight(code, { language: highlight.getLanguage(lang) ? lang : 'plaintext' }).value });
+            async function checkSession() {
+                const storedUser = localStorage.getItem('wgpt_u_name');
+                const storedId = localStorage.getItem('wgpt_u_id');
 
-            function vibrate() { if(navigator.vibrate) navigator.vibrate(40); }
+                if(storedUser && storedId) {
+                    await SysMemory.init(storedId);
+                    const status = SysMemory.check();
+
+                    if(BLACKLIST.HARDCODED.includes(storedId) || status.banned) {
+                        alert("⛔ تم حظر هذا الجهاز/الحساب.");
+                        localStorage.clear(); 
+                        location.reload(); 
+                        return;
+                    }
+
+                    ui.modal.classList.remove('active');
+                    document.body.classList.remove('blur-active');
+                    document.getElementById('side-user').innerText = storedUser;
+                    document.getElementById('side-id').innerText = storedId;
+                    document.getElementById('usage-counter').innerText = status.count;
+                    document.getElementById('usage-limit').innerText = status.isPro ? '∞' : status.limit;
+                    
+                    // Update account type display
+                    const accountTypeEl = document.getElementById('account-type');
+                    const limitBadgeEl = document.getElementById('limit-badge');
+                    if (status.isPro) {
+                        accountTypeEl.innerHTML = `<span style="color:gold;">${i18n.t('pro')}</span>`;
+                        if (limitBadgeEl) limitBadgeEl.innerHTML = i18n.t('limitUnlimited');
+                    } else {
+                        accountTypeEl.innerHTML = `<span style="color:#888;">${i18n.t('free')}</span>`;
+                        if (limitBadgeEl) limitBadgeEl.innerHTML = i18n.t('limitFree');
+                    }
+                    
+                    const ram = SysMemory.getData();
+                    if(ram.isAdmin || storedId === CONFIG.ADMIN_ID) {
+                        document.getElementById('admin-btn-toggle').style.display = 'flex';
+                    }
+                }
+            }
+
+            async function requestOtp() {
+                const user = ui.u.value.trim();
+                const id = ui.i.value.trim();
+                if(!user || !id) return alert("أدخل البيانات");
+
+                // Check if banned in DB
+                const { data } = await supabase
+                    .from('wormgpt_users')
+                    .select('is_banned')
+                    .eq('telegram_id', id)
+                    .maybeSingle();
+
+                if (data && data.is_banned) {
+                    return alert("⛔ حسابك محظور.");
+                }
+
+                const btn = ui.s1.querySelector('button');
+                btn.innerText = "جاري الاتصال..."; 
+                btn.disabled = true;
+
+                tempOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+                try {
+                    const res = await fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ 
+                            chat_id: id, 
+                            text: `🔐 *WormGPT Code:* \`${tempOtp}\`\n\n🚀 *Database-Connected Edition*`, 
+                            parse_mode: 'Markdown' 
+                        })
+                    });
+                    const d = await res.json();
+                    if(d.ok) { 
+                        ui.s1.style.display='none'; 
+                        ui.s2.style.display='block'; 
+                    } else { 
+                        throw new Error(); 
+                    }
+                } catch { 
+                    alert("خطأ: تأكد من بدء البوت @botswebisbot"); 
+                } finally { 
+                    btn.innerText = "إرسال رمز التحقق"; 
+                    btn.disabled = false; 
+                }
+            }
+
+            function verifyOtp() {
+                if(ui.o.value.trim() === tempOtp) {
+                    localStorage.setItem('wgpt_u_name', ui.u.value);
+                    localStorage.setItem('wgpt_u_id', ui.i.value);
+                    if(ui.i.value !== CONFIG.ADMIN_ID) notifyAdmin(ui.u.value, ui.i.value);
+                    location.reload();
+                } else { 
+                    alert("الرمز خطأ"); 
+                }
+            }
+
+            function logout() {
+                if(!confirm("هل تريد تسجيل الخروج؟")) return;
+                localStorage.clear();
+                location.reload();
+            }
+
+            function notifyAdmin(userName, userId) {
+                fetch(`https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        chat_id: CONFIG.ADMIN_ID,
+                        text: `🔔 *New Login*\n\n👤 User: ${userName}\n🆔 ID: \`${userId}\``,
+                        parse_mode: 'Markdown'
+                    })
+                }).catch(() => {});
+            }
+
+            return { checkSession, requestOtp, verifyOtp, logout };
+        })();
+
+        // ================= ADMIN PANEL =================
+        const admin = {
+            togglePanel: () => document.getElementById('admin-panel').classList.toggle('active'),
+            banUser: async function() {
+                const target = document.getElementById('admin-target-id').value.trim();
+                if(!target) return alert("أدخل معرف المستخدم");
+                if(!confirm(`هل تريد حظر ${target}؟`)) return;
+                
+                await DB.banUser(target);
+                alert(`✅ تم حظر ${target} بنجاح في قاعدة البيانات.`);
+            }
+        };
+
+        // ================= APP UI LOGIC =================
+        const app = (function() {
+            const dom = { 
+                box: document.getElementById('chat-box'), 
+                input: document.getElementById('msg-input'), 
+                send: document.getElementById('btn-send'), 
+                mic: document.getElementById('btn-mic'), 
+                usage: document.getElementById('usage-counter') 
+            };
+            let recognizing = false;
+            let conversationMessages = [];
 
             function init() {
-                const lastId = localStorage.getItem('worm_last_id');
-                if (lastId && state.chats.find(c => c.id == lastId)) loadChat(lastId); else newChat();
-                
-                els.input.addEventListener('input', function() {
-                    this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px';
-                    els.btnSend.disabled = !this.value.trim();
+                auth.checkSession();
+                dom.input.addEventListener('input', function() {
+                    this.style.height = 'auto'; 
+                    this.style.height = this.scrollHeight + 'px';
+                    dom.send.disabled = !this.value.trim();
                 });
-                renderHistory();
-                window.addEventListener('beforeunload', () => { stopAudio(); });
             }
 
             async function send() {
-                const txt = els.input.value.trim();
-                if (!txt) return;
-                vibrate();
-                els.input.value = ''; els.input.style.height = 'auto'; els.btnSend.disabled = true;
-                els.welcome.style.display = 'none';
-                appendMsg('user', txt);
+                const txt = dom.input.value.trim();
+                if(!txt) return;
 
-                const currentChat = state.chats.find(c => c.id == state.activeId);
-                if(currentChat) {
-                    if(currentChat.msgs.length === 0) { currentChat.title = txt.substring(0, 20); renderHistory(); }
-                    currentChat.msgs.push({ role: 'user', content: txt });
-                    saveData();
+                const status = SysMemory.check();
+                dom.usage.innerText = status.count;
+
+                if(!status.ok) {
+                    alert(status.banned ? i18n.t('accountBanned') : i18n.t('dailyLimitReached'));
+                    return;
                 }
 
-                const loadId = appendLoader();
-                try {
-                    const sessionId = state.activeId || "auto";
-                    const url = `${CONF.API}?message=${encodeURIComponent(txt)}&key=${CONF.KEY}&format=json&session_id=${sessionId}`;
-                    const res = await fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-                    document.getElementById(loadId)?.remove();
-                    if (!res.ok) throw new Error();
-                    const data = await res.json();
-                    if (!data.success) throw new Error(data.error);
+                dom.send.disabled = true;
+                dom.input.value = ''; 
+                dom.input.style.height = 'auto';
+                document.getElementById('welcome-screen').style.display = 'none';
+                
+                addMsg('user', txt);
+                conversationMessages.push({ role: 'user', content: txt, timestamp: new Date().toISOString() });
+                const loadId = addLoader();
 
-                    const reply = data.response;
-                    if(navigator.vibrate) navigator.vibrate([50, 50, 50]);
-                    appendMsg('bot', reply);
-                    if(currentChat) { currentChat.msgs.push({ role: 'assistant', content: reply }); saveData(); }
-                } catch (err) {
+                const newCount = await SysMemory.inc();
+                dom.usage.innerText = newCount;
+
+                try {
+                    const res = await fetch(`${CONFIG.API_URL}?message=${encodeURIComponent(txt)}&key=${CONFIG.API_KEY}&format=json&session_id=auto`);
+                    document.getElementById(loadId).remove();
+                    
+                    if(!res.ok) throw new Error("Server Error");
+                    const data = await res.json();
+                    
+                    if(data.success) {
+                        addMsg('bot', data.response);
+                        conversationMessages.push({ role: 'bot', content: data.response, timestamp: new Date().toISOString() });
+                        
+                        // Save to DB
+                        const telegramId = localStorage.getItem('wgpt_u_id');
+                        if (telegramId) {
+                            await DB.saveConversation(telegramId, conversationMessages);
+                        }
+                    } else {
+                        addMsg('bot', `Error: ${data.error}`);
+                    }
+
+                } catch(e) {
                     document.getElementById(loadId)?.remove();
-                    if(navigator.vibrate) navigator.vibrate(200);
-                    appendMsg('bot', `⚠️ فشل الاتصال: ${err.message || 'خطأ في الشبكة'}`);
-                } 
+                    addMsg('bot', "⚠️ خطأ في الاتصال بالسيرفر.");
+                } finally {
+                    dom.send.disabled = false;
+                }
             }
 
-            function appendMsg(role, text) {
+            function addMsg(role, text) {
                 const div = document.createElement('div');
-                div.className = `message ${role === 'user' ? 'msg-user' : 'msg-bot'}`;
+                div.className = `message msg-${role}`;
                 const bubble = document.createElement('div');
                 bubble.className = 'msg-bubble';
-                
-                if (role === 'user') {
+
+                if(role === 'user') {
                     bubble.textContent = text;
-                    div.appendChild(bubble);
                 } else {
-                    const cleanHtml = DOMPurify.sanitize(marked.parse(text));
-                    const contentDiv = document.createElement('div');
-                    contentDiv.innerHTML = cleanHtml;
-                    contentDiv.querySelectorAll('pre code').forEach((block) => {
-                        const pre = block.parentElement;
-                        const wrapper = document.createElement('div');
+                    const rawHtml = marked.parse(text);
+                    const safeHtml = DOMPurify.sanitize(rawHtml);
+                    bubble.innerHTML = safeHtml;
+                    
+                    bubble.querySelectorAll('pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                        const wrapper = document.createElement('div'); 
                         wrapper.className = 'code-wrapper';
-                        const lang = (block.className || 'text').replace('language-', '');
-                        const header = document.createElement('div');
+                        const header = document.createElement('div'); 
                         header.className = 'code-header';
-                        header.innerHTML = `<span>${lang}</span>`;
-                        const copyBtn = document.createElement('button');
-                        copyBtn.className = 'copy-code-btn';
-                        copyBtn.style.cssText = "border:none;background:rgba(255,255,255,0.1);color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:0.75rem";
-                        copyBtn.innerHTML = '<i class="far fa-copy"></i>';
-                        copyBtn.onclick = () => { vibrate(); copyText(block.innerText, copyBtn); };
-                        header.appendChild(copyBtn);
+                        header.innerHTML = `<span>Code</span><button class="copy-code-btn" onclick="app.copy(this)">${i18n.t('copy')}</button>`;
+                        
+                        block.parentElement.replaceWith(wrapper);
                         wrapper.appendChild(header);
-                        const newPre = pre.cloneNode(true);
-                        wrapper.appendChild(newPre);
-                        pre.replaceWith(wrapper);
+                        wrapper.appendChild(block.parentElement);
                     });
-                    bubble.appendChild(contentDiv);
-                    div.appendChild(bubble);
-
-                    const actionsBar = document.createElement('div');
-                    actionsBar.className = 'msg-actions';
                     
-                    const speakBtn = document.createElement('button');
-                    speakBtn.className = 'msg-action-btn';
-                    speakBtn.innerHTML = '<i class="fas fa-volume-up"></i> استماع';
-                    speakBtn.onclick = () => { vibrate(); toggleTTS(text, speakBtn); };
-                    
-                    const copyMsgBtn = document.createElement('button');
-                    copyMsgBtn.className = 'msg-action-btn';
-                    copyMsgBtn.innerHTML = '<i class="far fa-copy"></i> نسخ';
-                    copyMsgBtn.onclick = () => { vibrate(); copyText(text, copyMsgBtn); };
-
-                    actionsBar.appendChild(speakBtn);
-                    actionsBar.appendChild(copyMsgBtn);
-                    div.appendChild(actionsBar);
+                    // Add message actions for bot messages
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'msg-actions';
+                    actionsDiv.innerHTML = `
+                        <button class="msg-action-btn" onclick="app.copyMessage(this)">
+                            <i class="fas fa-copy"></i> ${i18n.t('copyMessage')}
+                        </button>
+                        <button class="msg-action-btn" onclick="app.speakMessage(this)">
+                            <i class="fas fa-volume-up"></i> ${i18n.t('listen')}
+                        </button>
+                    `;
+                    bubble.appendChild(actionsDiv);
                 }
-                els.box.appendChild(div);
-                els.box.scrollTop = els.box.scrollHeight;
+                div.appendChild(bubble);
+                dom.box.appendChild(div);
+                dom.box.scrollTop = dom.box.scrollHeight;
             }
 
-            // =========================================
-            // NEW AUDIO SYSTEM (WORKS ON APPS)
-            // =========================================
-            function toggleTTS(text, btn) {
-                // إذا كان نفس الزر يعمل حالياً، قم بالإيقاف
-                if (currentTTSBtn === btn && isPlaying) {
-                    stopAudio();
-                    resetBtn(btn);
-                    return;
-                }
-
-                // إيقاف أي صوت سابق
-                stopAudio();
-                if (currentTTSBtn) resetBtn(currentTTSBtn);
-
-                // تنظيف النص
-                const cleanText = text.replace(/[*#`_~>]/g, ' ').replace(/(<([^>]+)>)/gi, "").trim();
-                if(!cleanText) return;
-
-                // تحديث حالة الزر
-                currentTTSBtn = btn;
-                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> تحميل...';
-                btn.style.color = 'var(--accent-primary)';
-                
-                // تقسيم النص لجمل صغيرة (لأن جوجل لا يقبل نصوصاً طويلة جداً في الرابط)
-                // تقسيم النص بناءً على النقاط أو الفواصل أو طول معين
-                const chunks = cleanText.match(/[\s\S]{1,180}(?!\S)|[\s\S]{1,180}/g) || [cleanText];
-                
-                audioQueue = chunks;
-                playNextChunk(btn);
-            }
-
-            function playNextChunk(btn) {
-                if (audioQueue.length === 0) {
-                    stopAudio();
-                    resetBtn(btn);
-                    return;
-                }
-
-                const chunk = audioQueue.shift();
-                // استخدام رابط Google Translate TTS المباشر (يعمل كملف صوتي عادي)
-                const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(chunk)}&tl=ar&client=tw-ob`;
-
-                audioPlayer = new Audio(audioUrl);
-                
-                audioPlayer.onloadeddata = () => {
-                    if(currentTTSBtn === btn) {
-                        btn.innerHTML = '<i class="fas fa-stop"></i> إيقاف';
-                        isPlaying = true;
-                    }
-                };
-
-                audioPlayer.onended = () => {
-                    playNextChunk(btn);
-                };
-
-                audioPlayer.onerror = () => {
-                    // في حال الخطأ ننتقل للجزء التالي
-                    playNextChunk(btn);
-                };
-
-                audioPlayer.play().catch(e => {
-                    console.error("Audio Play Error:", e);
-                    stopAudio();
-                    resetBtn(btn);
-                });
-            }
-
-            function stopAudio() {
-                if (audioPlayer) {
-                    audioPlayer.pause();
-                    audioPlayer.currentTime = 0;
-                    audioPlayer = null;
-                }
-                audioQueue = [];
-                isPlaying = false;
-            }
-
-            function resetBtn(btn) {
-                if(btn) {
-                    btn.innerHTML = '<i class="fas fa-volume-up"></i> استماع';
-                    btn.style.color = '';
-                }
-                currentTTSBtn = null;
-            }
-
-            function appendLoader() {
-                const id = 'loader_' + Date.now();
-                const div = document.createElement('div');
-                div.id = id; div.className = 'message msg-bot';
-                div.innerHTML = '<div class="msg-bubble"><i class="fas fa-circle-notch fa-spin"></i> جاري التحليل...</div>';
-                els.box.appendChild(div); els.box.scrollTop = els.box.scrollHeight;
+            function addLoader() {
+                const id = 'l-' + Date.now();
+                dom.box.insertAdjacentHTML('beforeend', `<div id="${id}" class="message msg-bot"><div class="msg-bubble"><i class="fas fa-circle-notch fa-spin"></i> معالجة...</div></div>`);
+                dom.box.scrollTop = dom.box.scrollHeight;
                 return id;
             }
 
-            function copyText(text, btn) {
-                navigator.clipboard.writeText(text).then(() => {
-                    const original = btn.innerHTML; btn.innerHTML = '<i class="fas fa-check"></i>'; btn.style.color = '#00ff00';
-                    setTimeout(() => { btn.innerHTML = original; btn.style.color = ''; }, 2000);
+            function toggleVoice() {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if(!SR) return alert("غير مدعوم");
+                
+                if(recognizing) return;
+                
+                const rec = new SR();
+                rec.lang = 'ar-SA';
+                rec.onstart = () => { recognizing = true; dom.mic.classList.add('mic-active'); };
+                rec.onend = () => { recognizing = false; dom.mic.classList.remove('mic-active'); };
+                rec.onresult = e => { dom.input.value += ' ' + e.results[0][0].transcript; dom.input.dispatchEvent(new Event('input')); };
+                rec.start();
+            }
+
+            function exportChat() {
+                html2canvas(dom.box).then(cvs => {
+                    const a = document.createElement('a'); 
+                    a.download = 'WormGPT-Chat.png'; 
+                    a.href = cvs.toDataURL(); 
+                    a.click();
                 });
             }
 
-            function toggleVoice() {
-                if (!window.webkitSpeechRecognition) { alert("المتصفح لا يدعم الصوت"); return; }
-                if (state.recognition && state.isRecording) { state.recognition.stop(); return; }
-                state.recognition = new webkitSpeechRecognition();
-                state.recognition.lang = 'ar-SA';
-                state.recognition.onstart = () => { state.isRecording = true; els.btnMic.classList.add('mic-active'); vibrate(); };
-                state.recognition.onend = () => { state.isRecording = false; els.btnMic.classList.remove('mic-active'); };
-                state.recognition.onresult = (e) => { els.input.value += " " + e.results[0][0].transcript; els.input.dispatchEvent(new Event('input')); };
-                state.recognition.start();
-            }
+            window.app = { 
+                ...window.app, 
+                copy: (btn) => {
+                    const txt = btn.parentElement.nextElementSibling.innerText;
+                    navigator.clipboard.writeText(txt);
+                    const old = btn.innerText; 
+                    btn.innerText = "تم النسخ";
+                    setTimeout(()=>btn.innerText=old, 2000);
+                },
+                copyMessage: (btn) => {
+                    const msgBubble = btn.closest('.msg-bubble');
+                    const actionsDiv = msgBubble.querySelector('.msg-actions');
+                    const clonedBubble = msgBubble.cloneNode(true);
+                    if (clonedBubble.querySelector('.msg-actions')) {
+                        clonedBubble.querySelector('.msg-actions').remove();
+                    }
+                    const txt = clonedBubble.innerText;
+                    navigator.clipboard.writeText(txt);
+                    const iconElement = btn.querySelector('i');
+                    const oldIcon = iconElement.className;
+                    iconElement.className = 'fas fa-check';
+                    setTimeout(() => iconElement.className = oldIcon, 2000);
+                },
+                speakMessage: async (btn) => {
+                    const msgBubble = btn.closest('.msg-bubble');
+                    
+                    // Stop if already playing
+                    if (btn.classList.contains('playing')) {
+                        if (window.currentAudio) {
+                            window.currentAudio.pause();
+                            window.currentAudio = null;
+                        }
+                        btn.classList.remove('playing');
+                        btn.querySelector('i').className = 'fas fa-volume-up';
+                        return;
+                    }
+                    
+                    // Get text without code blocks and actions
+                    const clonedBubble = msgBubble.cloneNode(true);
+                    clonedBubble.querySelectorAll('.code-wrapper').forEach(el => el.remove());
+                    clonedBubble.querySelectorAll('.msg-actions').forEach(el => el.remove());
+                    const txt = clonedBubble.innerText.trim();
+                    
+                    if (!txt) {
+                        alert(i18n.t('noTextToRead'));
+                        return;
+                    }
+                    
+                    // Show loading state
+                    btn.classList.add('playing');
+                    const iconElement = btn.querySelector('i');
+                    const oldIcon = iconElement.className;
+                    iconElement.className = 'fas fa-spinner fa-spin';
+                    
+                    try {
+                        const API_URL = 'https://crrotjvxzrldiugfbsvq.supabase.co/functions/v1/text-to-speech';
+                        const response = await fetch(API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ text: txt, voice: 'alloy' })
+                        });
+                        
+                        if (!response.ok) throw new Error('TTS API failed');
+                        
+                        const data = await response.json();
+                        const audioBlob = await fetch(`data:audio/mp3;base64,${data.audioContent}`).then(r => r.blob());
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        
+                        const audio = new Audio(audioUrl);
+                        window.currentAudio = audio;
+                        
+                        iconElement.className = 'fas fa-stop';
+                        
+                        audio.onended = () => {
+                            btn.classList.remove('playing');
+                            iconElement.className = oldIcon;
+                            URL.revokeObjectURL(audioUrl);
+                            window.currentAudio = null;
+                        };
+                        
+                        audio.onerror = () => {
+                            btn.classList.remove('playing');
+                            iconElement.className = oldIcon;
+                            alert(i18n.t('audioError'));
+                            window.currentAudio = null;
+                        };
+                        
+                        await audio.play();
+                        
+                    } catch (error) {
+                        console.error('TTS Error:', error);
+                        btn.classList.remove('playing');
+                        iconElement.className = oldIcon;
+                        alert(i18n.t('audioError'));
+                    }
+                }
+            };
 
-            function newChat() { state.activeId = Date.now().toString(); state.chats.unshift({ id: state.activeId, title: 'جلسة جديدة', msgs: [], date: Date.now() }); els.box.innerHTML = ''; els.box.appendChild(els.welcome); els.welcome.style.display = 'flex'; saveData(); renderHistory(); toggleMenu(false); stopAudio(); }
-            function loadChat(id) { state.activeId = id; localStorage.setItem('worm_last_id', id); const chat = state.chats.find(c => c.id == id); if(!chat) return newChat(); els.box.innerHTML = ''; if(chat.msgs.length) { els.welcome.style.display = 'none'; chat.msgs.forEach(m => appendMsg(m.role, m.content)); } else { els.box.appendChild(els.welcome); els.welcome.style.display = 'flex'; } toggleMenu(false); stopAudio(); }
-            function delChat(e, id) { if(e) e.stopPropagation(); if(!confirm('حذف؟')) return; state.chats = state.chats.filter(c => String(c.id) !== String(id)); saveData(); if(String(state.activeId) === String(id)) newChat(); else renderHistory(); }
-            function saveData() { localStorage.setItem('worm_chats', JSON.stringify(state.chats)); localStorage.setItem('worm_last_id', state.activeId); }
-            function renderHistory() { els.histList.innerHTML = state.chats.map(c => `<div class="chat-item ${c.id==state.activeId?'active':''}" onclick="app.vibrate(); app.loadChat('${c.id}')"><span>${c.title}</span><i class="fas fa-trash" onclick="app.delChat(event, '${c.id}')" style="padding:10px;color:#666"></i></div>`).join(''); }
-            function toggleMenu(f) { const n = f!==undefined?f:!els.sidebar.classList.contains('active'); els.sidebar.classList.toggle('active',n); els.overlay.classList.toggle('active',n); if(n) vibrate(); }
-            function setInput(t) { vibrate(); els.input.value = t; els.input.dispatchEvent(new Event('input')); send(); }
-            function exportChat() { html2canvas(els.box, { backgroundColor: '#050505', ignoreElements: (n) => n.id === 'welcome-screen' && n.style.display === 'none' }).then(c => { const l = document.createElement('a'); l.download = `Chat-${Date.now()}.png`; l.href = c.toDataURL(); l.click(); }); }
-
-            return { init, send, newChat, loadChat, delChat, toggleMenu, toggleVoice, setInput, exportChat, toggleTTS, vibrate };
+            return { init, send, toggleVoice, exportChat, toggleMenu: () => { 
+                document.getElementById('sidebar').classList.toggle('active'); 
+                document.querySelector('.overlay').classList.toggle('active'); 
+            }};
         })();
 
-        document.addEventListener('DOMContentLoaded', app.init);
+        // Start App
+        document.addEventListener('DOMContentLoaded', () => {
+            i18n.init();
+            app.init();
+        });
     </script>
 </body>
     </html>
