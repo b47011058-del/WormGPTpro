@@ -1,40 +1,1140 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" id="html-root">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>WormGPT Elite 🛡️ - Connected to Database</title>
-
-    <!-- الخطوط والأيقونات -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;800&family=Fira+Code:wght@400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <!-- مكتبات التنسيق والمعالجة -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WormGPT - High Precision UI</title>
+    <!-- مكتبات JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <style>
-        /* ==================== CSS VARIABLES & RESET ==================== */
+        /* إعدادات الألوان والخطوط الدقيقة */
         :root {
-            --bg-core: #050505;
-            --accent-primary: #ff0033;
-            --accent-glow: rgba(255, 0, 51, 0.4);
-            --text-main: #e0e0e0;
-            --admin-color: #00ff88;
-            --glass: rgba(20, 20, 20, 0.8);
+            --bg-red-glow: #600202; /* التوهج الأحمر في المركز */
+            --bg-black: #000000;
+            --main-red: #ff3333; /* لون النص في الأعلى */
+            --sub-red: #a32222;  /* لون ترحيب WormGPT */
+            --input-bg: #111111;
+            --border-gray: #2c2c2c;
+            --text-white: #ffffff;
+            --text-dim: #707070;
+            --message-user-bg: rgba(255, 51, 51, 0.1);
+            --message-bot-bg: rgba(30, 30, 30, 0.9);
+            --loading-red: #ff3333;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
         body {
-            background-color: var(--bg-core); color: var(--text-main);
-            font-family: 'Cairo', sans-serif; height: 100dvh; overflow: hidden;
-            background-image: radial-gradient(circle at 50% 0%, #1a0005 0%, #000000 80%);
+            background: radial-gradient(circle at center, var(--bg-red-glow) 0%, var(--bg-black) 75%);
+            height: 100vh;
+            height: 100dvh;
+            color: var(--text-white);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- الهيدر العلوي --- */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-left {
+            color: var(--main-red);
+            font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+        }
+
+        /* الشعار الدائري الأحمر في اليمين */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-right .logo-circle {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--main-red);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .logo-circle::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--main-red);
+            border-radius: 50%;
+            border-top-color: transparent;
+            transform: rotate(45deg);
+        }
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            color: var(--main-red);
+        }
+
+        /* --- منطقة المحادثة --- */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 20px 25px;
+            scroll-behavior: smooth;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-container::-webkit-scrollbar-thumb {
+            background: var(--main-red);
+            border-radius: 2px;
+        }
+
+        /* شاشة الترحيب */
+        .welcome-screen {
+            text-align: center;
+            margin: auto;
+            padding: 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .welcome-screen h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .welcome-screen h2 {
+            font-size: 1.4rem;
+            color: var(--sub-red);
+            font-weight: 500;
+            margin-bottom: 30px;
+        }
+
+        .welcome-badge {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            border-radius: 20px;
+            padding: 10px 20px;
+            display: inline-block;
+            font-size: 0.9rem;
+            color: var(--main-red);
+        }
+
+        /* رسائل المحادثة */
+        .message {
+            max-width: 85%;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        .message-user {
+            align-self: flex-end;
+        }
+
+        .message-bot {
+            align-self: flex-start;
+        }
+
+        .message-bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message-user .message-bubble {
+            background: var(--message-user-bg);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            border-bottom-right-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .message-bot .message-bubble {
+            background: var(--message-bot-bg);
+            border: 1px solid var(--border-gray);
+            border-bottom-left-radius: 5px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* الكود بلوكس */
+        .code-wrapper {
+            margin: 10px 0;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            direction: ltr;
+        }
+
+        .code-header {
+            padding: 8px 12px;
+            background: rgba(30, 30, 30, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .copy-btn {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.2);
+            color: var(--main-red);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+            background: rgba(255, 51, 51, 0.2);
+        }
+
+        pre {
+            padding: 12px;
+            overflow-x: auto;
+            margin: 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            direction: ltr;
+        }
+
+        /* أزرار الرسائل */
+        .message-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 6px 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:active {
+            background: rgba(255, 51, 51, 0.1);
+            transform: scale(0.98);
+        }
+
+        /* مؤشر التحميل */
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            align-self: flex-start;
+        }
+
+        .loading-dots {
+            display: flex;
+            gap: 5px;
+        }
+
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--loading-red);
+            border-radius: 50%;
+        }
+
+        /* رسالة الخطأ */
+        .error-message {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 5px 0;
+            color: var(--main-red);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: fadeInUp 0.3s ease-out;
+        }
+
+        /* --- شريط الإدخال السفلي --- */
+        .bottom-container {
+            width: 100%;
+            padding: 10px 20px 25px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* الخط الأفقي الرفيع فوق الإدخال */
+        .divider {
+            width: 85%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 850px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border-gray);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--main-red);
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.2);
+        }
+
+        /* زر الميكروفون (يمين) */
+        .mic-icon {
+            color: var(--text-white);
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .mic-icon.recording {
+            color: var(--main-red);
+            animation: pulse-red 1.5s infinite;
+        }
+
+        .mic-icon:active {
+            transform: scale(0.95);
+        }
+
+        .text-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-white);
+            font-size: 1.1rem;
+            padding: 10px 15px;
+            text-align: right;
+            outline: none;
+            font-family: inherit;
+            max-height: 100px;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        .text-input::placeholder {
+            color: var(--text-dim);
+        }
+
+        /* زر الإرسال الدائري (يسار) */
+        .send-button {
+            background: var(--text-white);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.7;
+        }
+
+        .send-button.active {
+            opacity: 1;
+            transform: scale(1.05);
+            background: var(--main-red);
+        }
+
+        .send-button.active svg {
+            fill: white;
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
+        }
+
+        .send-button svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--bg-black);
+            transition: all 0.3s;
+        }
+
+        /* النص الصغير جداً في الأسفل */
+        .footer-note {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+            text-align: center;
+            max-width: 90%;
+            line-height: 1.5;
+            margin-top: 5px;
+        }
+
+        /* القائمة الجانبية */
+        .side-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 300px;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.98);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 1px solid var(--border-gray);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .side-menu.active {
+            right: 0;
+        }
+
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* الرسومات المتحركة */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-red {
+            0%, 100% {
+                opacity: 1;
+                box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+            }
+            50% {
+                opacity: 0.7;
+                box-shadow: 0 0 20px rgba(255, 51, 51, 0.8);
+            }
+        }
+
+        @keyframes bounce {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-8px);
+            }
+        }
+
+        /* تعديلات الموبايل */
+        @media (max-width: 600px) {
+            .top-nav { padding: 15px 20px; }
+            .header-left { font-size: 1.1rem; }
+            .chat-container { padding: 15px 20px; }
+            .message { max-width: 90%; }
+            .welcome-screen h1 { font-size: 1.4rem; }
+            .welcome-screen h2 { font-size: 1.1rem; }
+            .input-wrapper { padding: 6px 12px; }
+            .side-menu { width: 85%; }
+        }
+
+        /* دعم iOS */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                height: -webkit-fill-available;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- القائمة الجانبية -->
+    <div class="menu-overlay" id="menuOverlay"></div>
+    <div class="side-menu" id="sideMenu">
+        <div style="margin-bottom: 30px;">
+            <h3 style="color: var(--main-red); margin-bottom: 20px;">إعدادات WormGPT</h3>
+            <div style="background: rgba(255, 51, 51, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <div style="color: var(--main-red); font-size: 0.9rem; margin-bottom: 5px;">حالة الحساب</div>
+                <div style="color: var(--main-red); font-size: 1rem;">
+                    <i class="fas fa-check-circle"></i>
+                    <span style="margin-right: 8px;">● نشط & غير محدود</span>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <div style="color: var(--text-dim); font-size: 0.9rem; margin-bottom: 10px;">الميزات</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                        <i class="fas fa-infinity" style="color: var(--main-red);"></i>
+                        <span>رسائل غير محدودة</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                        <i class="fas fa-microphone" style="color: var(--main-red);"></i>
+                        <span>إدخال صوتي</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                        <i class="fas fa-code" style="color: var(--main-red);"></i>
+                        <span>دعم الأكواد</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="logoutBtn" style="width: 100%; padding: 12px; background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.3); color: var(--main-red); border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.2s; margin-top: 20px;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span style="margin-right: 8px;">تسجيل الخروج</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- الهيدر العلوي -->
+    <header class="top-nav">
+        <div class="header-left">WormGPT HackerExos</div>
+        <div class="header-right">
+            <button class="clear-btn" id="clearBtn" title="مسح المحادثة">
+                <i class="fas fa-trash"></i>
+            </button>
+            <div class="logo-circle" id="menuBtn"></div>
+        </div>
+    </header>
+
+    <!-- منطقة المحادثة -->
+    <main class="chat-container" id="chatContainer">
+        <!-- شاشة الترحيب -->
+        <div class="welcome-screen">
+            <h1>كيف يمكنني مساعدتك سيدي؟</h1>
+            <h2>مرحباً بك في WormGPT</h2>
+            <div class="welcome-badge">
+                <span>✨ رسائل غير محدودة ✨</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- شريط الإدخال السفلي -->
+    <footer class="bottom-container">
+        <div class="divider"></div>
+        
+        <div class="input-wrapper">
+            <button class="send-button" id="submitBtn">
+                <svg viewBox="0 0 24 24"><path d="M13 19V7.83l4.88 4.88c.39.39 1.03.39 1.42 0a.996.996 0 0 0 0-1.41l-6.59-6.59a.996.996 0 0 0-1.41 0l-6.6 6.58a.996.996 0 1 0 1.41 1.41L11 7.83V19c0 .55.45 1 1 1s1-.45 1-1z"></path></svg>
+            </button>
+
+            <textarea 
+                class="text-input" 
+                id="chatInput" 
+                placeholder="اسأل عن أي شيء"
+                rows="1"
+                oninput="autoResize(this)"
+            ></textarea>
+
+            <div class="mic-icon" id="micBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+            </div>
+        </div>
+
+        <p class="footer-note">
+            هذا النموذج معطل، لذلك قد لا يساعدك في بعض الأحيان، قد يفشل النموذج؛ تحقق من الإجابات.
+        </p>
+    </footer>
+
+    <script>
+        // الإعدادات
+        const CONFIG = {
+            API_URL: "https://udghbdlcrzvkfsyjqkch.supabase.co/functions/v1/chat",
+            API_KEY: "wgpt_Ibpy8rL4-Apdj-3GDX-JKzt-q07HH1W2nb77",
+            MAX_MESSAGE_LENGTH: 5000
+        };
+
+        // العناصر
+        const elements = {
+            chatContainer: document.getElementById('chatContainer'),
+            chatInput: document.getElementById('chatInput'),
+            submitBtn: document.getElementById('submitBtn'),
+            micBtn: document.getElementById('micBtn'),
+            clearBtn: document.getElementById('clearBtn'),
+            menuBtn: document.getElementById('menuBtn'),
+            menuOverlay: document.getElementById('menuOverlay'),
+            sideMenu: document.getElementById('sideMenu'),
+            logoutBtn: document.getElementById('logoutBtn')
+        };
+
+        // الحالة
+        let state = {
+            username: localStorage.getItem('wgpt_username') || 'المستخدم',
+            sessionId: 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+            conversation: JSON.parse(localStorage.getItem('wgpt_conversation')) || [],
+            isRecording: false,
+            recognition: null,
+            isConnected: true
+        };
+
+        // تهيئة التطبيق
+        function initApp() {
+            setupEventListeners();
+            loadPreviousConversation();
+            
+            // تحديث حالة زر الإرسال
+            updateSendButton();
+            
+            // إضافة مستمع للاتصال
+            window.addEventListener('online', handleConnectionChange);
+            window.addEventListener('offline', handleConnectionChange);
+        }
+
+        // إعداد المستمعين
+        function setupEventListeners() {
+            // زر الإرسال
+            elements.submitBtn.addEventListener('click', sendMessage);
+            
+            // إدخال النص
+            elements.chatInput.addEventListener('input', () => {
+                updateSendButton();
+                autoResize(elements.chatInput);
+            });
+            
+            // زر Enter
+            elements.chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // الميكروفون
+            elements.micBtn.addEventListener('click', toggleVoiceInput);
+            
+            // مسح المحادثة
+            elements.clearBtn.addEventListener('click', clearChat);
+            
+            // القائمة
+            elements.menuBtn.addEventListener('click', toggleMenu);
+            elements.menuOverlay.addEventListener('click', toggleMenu);
+            elements.logoutBtn.addEventListener('click', handleLogout);
+        }
+
+        // تحميل المحادثة السابقة
+        function loadPreviousConversation() {
+            if (state.conversation.length > 0) {
+                document.querySelector('.welcome-screen')?.remove();
+                state.conversation.forEach(msg => {
+                    addMessage(msg.role, msg.content, false);
+                });
+                scrollToBottom();
+            }
+        }
+
+        // تحديث زر الإرسال
+        function updateSendButton() {
+            const hasText = elements.chatInput.value.trim().length > 0;
+            elements.submitBtn.classList.toggle('active', hasText);
+        }
+
+        // تعديل حجم مربع النص تلقائياً
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            const newHeight = Math.min(textarea.scrollHeight, 100);
+            textarea.style.height = newHeight + 'px';
+        }
+
+        // إرسال الرسالة
+        async function sendMessage() {
+            const text = elements.chatInput.value.trim();
+            if (!text) return;
+
+            // التحقق من الطول
+            if (text.length > CONFIG.MAX_MESSAGE_LENGTH) {
+                showError(`الرسالة طويلة جداً (الحد الأقصى ${CONFIG.MAX_MESSAGE_LENGTH} حرف)`);
+                return;
+            }
+
+            // إخفاء شاشة الترحيب
+            document.querySelector('.welcome-screen')?.remove();
+
+            // إضافة رسالة المستخدم
+            addMessage('user', text);
+            elements.chatInput.value = '';
+            autoResize(elements.chatInput);
+            updateSendButton();
+
+            // حفظ في المحادثة
+            state.conversation.push({ 
+                role: 'user', 
+                content: text, 
+                timestamp: new Date().toISOString() 
+            });
+            saveConversation();
+
+            // عرض مؤشر التحميل
+            const loadingId = showLoading();
+
+            try {
+                // إرسال إلى API
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        api_key: CONFIG.API_KEY,
+                        message: text,
+                        session_id: state.sessionId,
+                        user_id: state.username
+                    })
+                });
+
+                // إخفاء التحميل
+                removeLoading(loadingId);
+
+                if (!response.ok) {
+                    throw new Error(`خطأ في الخادم: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.response) {
+                    addMessage('bot', data.response);
+                    state.conversation.push({ 
+                        role: 'bot', 
+                        content: data.response, 
+                        timestamp: new Date().toISOString() 
+                    });
+                    saveConversation();
+                } else {
+                    addMessage('bot', `خطأ: ${data.error || 'خطأ غير معروف'}`);
+                }
+
+            } catch (error) {
+                console.error('خطأ API:', error);
+                removeLoading(loadingId);
+                
+                let errorMessage = "خطأ في الاتصال. يرجى المحاولة مرة أخرى.";
+                if (error.message.includes('Failed to fetch')) {
+                    errorMessage = "خطأ في الشبكة. يرجى التحقق من اتصالك.";
+                }
+                
+                addMessage('bot', `⚠️ ${errorMessage}`);
+            }
+        }
+
+        // إضافة رسالة للواجهة
+        function addMessage(role, text, animate = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${role}`;
+            if (animate) {
+                messageDiv.style.animation = 'fadeInUp 0.3s ease-out';
+            }
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            
+            if (role === 'user') {
+                bubbleDiv.textContent = text;
+            } else {
+                // معالجة Markdown
+                try {
+                    const rawHtml = marked.parse(text);
+                    const safeHtml = DOMPurify.sanitize(rawHtml);
+                    bubbleDiv.innerHTML = safeHtml;
+                    
+                    // معالجة الأكواد
+                    bubbleDiv.querySelectorAll('pre code').forEach(block => {
+                        hljs.highlightElement(block);
+                        
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'code-wrapper';
+                        
+                        const header = document.createElement('div');
+                        header.className = 'code-header';
+                        header.innerHTML = `
+                            <span>كود</span>
+                            <button class="copy-btn" onclick="copyCode(this)">نسخ</button>
+                        `;
+                        
+                        const preElement = block.parentElement;
+                        preElement.parentElement.replaceChild(wrapper, preElement);
+                        wrapper.appendChild(header);
+                        wrapper.appendChild(preElement);
+                    });
+                    
+                    // إضافة أزرار الإجراءات
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'message-actions';
+                    actionsDiv.innerHTML = `
+                        <button class="action-btn" onclick="copyMessage(this)">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                        <button class="action-btn" onclick="speakMessage(this)">
+                            <i class="fas fa-volume-up"></i> استماع
+                        </button>
+                    `;
+                    bubbleDiv.appendChild(actionsDiv);
+                    
+                } catch (error) {
+                    console.error('خطأ في تحليل Markdown:', error);
+                    bubbleDiv.textContent = text;
+                }
+            }
+            
+            messageDiv.appendChild(bubbleDiv);
+            elements.chatContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        // عرض مؤشر التحميل
+        function showLoading() {
+            const loadingId = 'loading-' + Date.now();
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-indicator';
+            loadingDiv.id = loadingId;
+            loadingDiv.innerHTML = `
+                <div class="loading-dots">
+                    <div class="loading-dot" style="animation: bounce 1.4s infinite;"></div>
+                    <div class="loading-dot" style="animation: bounce 1.4s infinite 0.2s;"></div>
+                    <div class="loading-dot" style="animation: bounce 1.4s infinite 0.4s;"></div>
+                </div>
+                <span>جاري المعالجة...</span>
+            `;
+            elements.chatContainer.appendChild(loadingDiv);
+            scrollToBottom();
+            return loadingId;
+        }
+
+        // إخفاء التحميل
+        function removeLoading(id) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(-10px)';
+                element.style.transition = 'all 0.3s ease';
+                setTimeout(() => {
+                    if (element.parentElement) {
+                        element.remove();
+                    }
+                }, 300);
+            }
+        }
+
+        // عرض خطأ
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                <span>${message}</span>
+            `;
+            
+            elements.chatContainer.appendChild(errorDiv);
+            scrollToBottom();
+            
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // التمرير للأسفل
+        function scrollToBottom() {
+            requestAnimationFrame(() => {
+                elements.chatContainer.scrollTo({
+                    top: elements.chatContainer.scrollHeight,
+                    behavior: 'smooth'
+                });
+            });
+        }
+
+        // حفظ المحادثة
+        function saveConversation() {
+            if (state.conversation.length > 0) {
+                localStorage.setItem('wgpt_conversation', JSON.stringify(state.conversation));
+            }
+        }
+
+        // مسح المحادثة
+        function clearChat() {
+            if (!confirm("هل أنت متأكد من رغبتك في مسح المحادثة؟")) return;
+            
+            state.conversation = [];
+            state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.removeItem('wgpt_conversation');
+            
+            elements.chatContainer.innerHTML = `
+                <div class="welcome-screen">
+                    <h1>كيف يمكنني مساعدتك سيدي؟</h1>
+                    <h2>مرحباً بك في WormGPT</h2>
+                    <div class="welcome-badge">
+                        <span>✨ رسائل غير محدودة ✨</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // تبديل الإدخال الصوتي
+        function toggleVoiceInput() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                showError("الإدخال الصوتي غير مدعوم في متصفحك");
+                return;
+            }
+
+            if (state.isRecording) {
+                state.recognition.stop();
+                return;
+            }
+
+            state.recognition = new SpeechRecognition();
+            state.recognition.lang = 'ar-SA';
+            state.recognition.continuous = false;
+            state.recognition.interimResults = false;
+            state.recognition.maxAlternatives = 1;
+
+            state.recognition.onstart = () => {
+                state.isRecording = true;
+                elements.micBtn.classList.add('recording');
+            };
+
+            state.recognition.onend = () => {
+                state.isRecording = false;
+                elements.micBtn.classList.remove('recording');
+            };
+
+            state.recognition.onresult = (event) => {
+                if (event.results && event.results.length > 0) {
+                    const transcript = event.results[0][0].transcript;
+                    elements.chatInput.value = transcript;
+                    updateSendButton();
+                    autoResize(elements.chatInput);
+                }
+            };
+
+            state.recognition.onerror = (event) => {
+                console.error('خطأ في التعرف الصوتي:', event.error);
+                state.isRecording = false;
+                elements.micBtn.classList.remove('recording');
+                
+                let errorMsg = "فشل التعرف الصوتي.";
+                if (event.error === 'not-allowed') {
+                    errorMsg = "تم رفض الوصول للميكروفون. يرجى السماح بالوصول في إعدادات المتصفح.";
+                }
+                
+                showError(errorMsg);
+            };
+
+            try {
+                state.recognition.start();
+            } catch (error) {
+                console.error('فشل بدء التعرف:', error);
+                showError("فشل بدء التعرف الصوتي");
+            }
+        }
+
+        // تبديل القائمة
+        function toggleMenu() {
+            elements.sideMenu.classList.toggle('active');
+            elements.menuOverlay.classList.toggle('active');
+            document.body.style.overflow = elements.sideMenu.classList.contains('active') ? 'hidden' : '';
+        }
+
+        // تسجيل الخروج
+        function handleLogout() {
+            if (!confirm("هل أنت متأكد من تسجيل الخروج؟")) return;
+            
+            localStorage.clear();
+            state.username = 'المستخدم';
+            state.conversation = [];
+            state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            clearChat();
+            toggleMenu();
+        }
+
+        // تغيير حالة الاتصال
+        function handleConnectionChange() {
+            state.isConnected = navigator.onLine;
+            if (!state.isConnected) {
+                showError("أنت غير متصل بالإنترنت الآن");
+            }
+        }
+
+        // وظائف عامة
+        window.copyCode = function(btn) {
+            const codeWrapper = btn.closest('.code-wrapper');
+            const codeElement = codeWrapper.querySelector('code');
+            
+            if (!codeElement) return;
+            
+            const code = codeElement.textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                const originalText = btn.textContent;
+                btn.textContent = 'تم النسخ!';
+                btn.style.background = 'rgba(255, 51, 51, 0.3)';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        };
+
+        window.copyMessage = function(btn) {
+            const bubble = btn.closest('.message-bubble');
+            const clone = bubble.cloneNode(true);
+            
+            clone.querySelectorAll('.message-actions, .code-header').forEach(el => el.remove());
+            
+            const text = clone.textContent.trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    const originalClass = icon.className;
+                    icon.className = 'fas fa-check';
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                    }, 2000);
+                }
+            });
+        };
+
+        window.speakMessage = function(btn) {
+            const bubble = btn.closest('.message-bubble');
+            const clone = bubble.cloneNode(true);
+            
+            clone.querySelectorAll('.message-actions, .code-wrapper').forEach(el => el.remove());
+            
+            const text = clone.textContent.trim();
+
+            if (!text) {
+                showError("لا يوجد نص للقراءة");
+                return;
+            }
+
+            if (!('speechSynthesis' in window)) {
+                showError("القراءة النصية غير مدعومة في متصفحك");
+                return;
+            }
+
+            const synth = window.speechSynthesis;
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'ar-SA';
+            utterance.rate = 1;
+
+            const icon = btn.querySelector('i');
+            if (icon) {
+                const originalClass = icon.className;
+                icon.className = 'fas fa-stop';
+                
+                utterance.onend = () => {
+                    icon.className = originalClass;
+                };
+                
+                utterance.onerror = () => {
+                    icon.className = originalClass;
+                    showError("فشل في قراءة النص");
+                };
+            }
+
+            synth.speak(utterance);
+        };
+
+        // بدء التطبيق
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>            background-image: radial-gradient(circle at 50% 0%, #1a0005 0%, #000000 80%);
             user-select: none;
         }
 
