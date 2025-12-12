@@ -14,10 +14,10 @@
     <style>
         /* إعدادات الألوان والخطوط الدقيقة */
         :root {
-            --bg-red-glow: #600202; /* التوهج الأحمر في المركز */
+            --bg-red-glow: #600202;
             --bg-black: #000000;
-            --main-red: #ff3333; /* لون النص في الأعلى */
-            --sub-red: #a32222;  /* لون ترحيب WormGPT */
+            --main-red: #ff3333;
+            --sub-red: #a32222;
             --input-bg: #111111;
             --border-gray: #2c2c2c;
             --text-white: #ffffff;
@@ -25,6 +25,8 @@
             --message-user-bg: rgba(255, 51, 51, 0.1);
             --message-bot-bg: rgba(30, 30, 30, 0.9);
             --loading-red: #ff3333;
+            --success-green: #00ff88;
+            --error-red: #ff4444;
         }
 
         * {
@@ -216,6 +218,112 @@
             border-bottom-left-radius: 5px;
             backdrop-filter: blur(10px);
             color: #ddd;
+        }
+
+        /* شاشة الترخيص */
+        .license-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.97);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .license-box {
+            background: #111;
+            padding: 35px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.8);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .license-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .license-header i {
+            font-size: 3.5rem;
+            color: var(--main-red);
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .license-title {
+            font-size: 1.8rem;
+            color: var(--main-red);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .license-subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .key-format {
+            background: rgba(255, 51, 51, 0.1);
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            color: var(--success-green);
+        }
+
+        .license-status {
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .license-status.success {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            color: var(--success-green);
+        }
+
+        .license-status.error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            color: var(--error-red);
+        }
+
+        .license-info {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
         }
 
         /* الكود بلوكس */
@@ -558,10 +666,14 @@
             color: #fff;
             font-size: 1rem;
             transition: 0.2s;
+            text-align: center;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
         }
 
         .input-group input:focus {
             border-color: var(--main-red);
+            box-shadow: 0 0 15px rgba(255, 51, 51, 0.2);
         }
 
         .btn-primary {
@@ -654,6 +766,12 @@
             }
         }
 
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
         /* تعديلات الموبايل */
         @media (max-width: 600px) {
             .chat-header { padding: 15px 20px; }
@@ -664,7 +782,9 @@
             .welcome-screen h2 { font-size: 1.1rem; }
             .input-box { padding: 6px 12px; }
             .side-menu { width: 85%; }
+            .license-box { padding: 25px 20px; }
             .login-box { padding: 20px; }
+            .license-title { font-size: 1.5rem; }
         }
 
         /* دعم iOS */
@@ -681,6 +801,45 @@
 </head>
 <body>
 
+    <!-- شاشة الترخيص -->
+    <div class="license-modal" id="licenseModal">
+        <div class="license-box">
+            <div class="license-header">
+                <i class="fas fa-key"></i>
+                <h2 class="license-title">WORMGPT ACCESS</h2>
+                <p class="license-subtitle">
+                    أدخل مفتاح الترخيص المكون من 14 حرفاً (أرقام وحروف إنجليزية)
+                </p>
+                
+                <div class="key-format">XXXX-XXXX-XXXX</div>
+            </div>
+            
+            <div class="input-group">
+                <label for="licenseKey">مفتاح الترخيص</label>
+                <input 
+                    type="text" 
+                    id="licenseKey" 
+                    placeholder="أدخل المفتاح هنا"
+                    maxlength="14"
+                    autocomplete="off"
+                    autocapitalize="characters"
+                >
+            </div>
+            
+            <div id="licenseStatus" class="license-status" style="display: none;"></div>
+            
+            <button class="btn-primary" id="activateBtn">
+                <i class="fas fa-unlock"></i>
+                <span>تفعيل</span>
+            </button>
+            
+            <div class="license-info">
+                <span>الإصدار: Premium 2.0</span>
+                <span>متطلب: 14 حرف</span>
+            </div>
+        </div>
+    </div>
+
     <!-- شاشة تسجيل الدخول -->
     <div class="login-modal" id="loginModal">
         <div class="login-box">
@@ -691,15 +850,15 @@
             <p class="login-subtitle">AI Assistant - No Limits, No Restrictions</p>
             
             <div class="input-group">
-                <label for="loginUsername">Username</label>
-                <input type="text" id="loginUsername" placeholder="Enter your name" autocomplete="off">
+                <label for="loginUsername">اسم المستخدم</label>
+                <input type="text" id="loginUsername" placeholder="أدخل اسمك" autocomplete="off">
             </div>
             
-            <button class="btn-primary" id="loginBtn">Start Chatting</button>
+            <button class="btn-primary" id="loginBtn">بدء المحادثة</button>
             
             <div style="margin-top: 24px; display: flex; justify-content: space-between; font-size: 0.8rem; color: #666;">
-                <span>Status: <span style="color: var(--main-red)">● Online</span></span>
-                <span>Unlimited Access ✓</span>
+                <span>الحالة: <span style="color: var(--main-red)">● مفعل</span></span>
+                <span>وصول غير محدود ✓</span>
             </div>
         </div>
     </div>
@@ -777,7 +936,7 @@
             
             <div class="input-box">
                 <button class="send-btn" id="submitBtn" disabled>
-                    <svg viewBox="0 0 24 24"><path d="M13 19V7.83l4.88 4.88c.39.39 1.03.39 1.42 0a.996.996 0 0 0 0-1.41l-6.59 infill-rule="evenodd"></path></svg>
+                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
                 </button>
 
                 <textarea 
@@ -803,11 +962,23 @@
         const CONFIG = {
             API_URL: "https://udghbdlcrzvkfsyjqkch.supabase.co/functions/v1/chat",
             API_KEY: "wgpt_Ibpy8rL4-Apdj-3GDX-JKzt-q07HH1W2nb77",
-            MAX_MESSAGE_LENGTH: 5000
+            MAX_MESSAGE_LENGTH: 5000,
+            // المفاتيح الصالحة (يمكنك إضافة المزيد)
+            VALID_LICENSE_KEYS: [
+                "WG4T8H7K9D2F5R", // مفتاح افتراضي 1
+                "X3B7N9M2Q4R6T8", // مفتاح افتراضي 2
+                "A1B2C3D4E5F6G7", // مفتاح افتراضي 3
+                "H8J9K0L1M2N3P4", // مفتاح افتراضي 4
+                "Q5W6E7R8T9Y0U1"  // مفتاح افتراضي 5
+            ]
         };
 
         // العناصر
         const elements = {
+            licenseModal: document.getElementById('licenseModal'),
+            licenseKey: document.getElementById('licenseKey'),
+            licenseStatus: document.getElementById('licenseStatus'),
+            activateBtn: document.getElementById('activateBtn'),
             loginModal: document.getElementById('loginModal'),
             loginUsername: document.getElementById('loginUsername'),
             loginBtn: document.getElementById('loginBtn'),
@@ -824,6 +995,8 @@
 
         // الحالة
         let state = {
+            isLicensed: localStorage.getItem('wgpt_licensed') === 'true',
+            licenseKey: localStorage.getItem('wgpt_license_key') || '',
             username: localStorage.getItem('wgpt_username') || '',
             sessionId: 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
             conversation: JSON.parse(localStorage.getItem('wgpt_conversation')) || [],
@@ -834,12 +1007,17 @@
 
         // تهيئة التطبيق
         function initApp() {
-            // التحقق من تسجيل الدخول
-            if (!state.username) {
-                elements.loginModal.classList.add('active');
-                elements.loginUsername.focus();
+            // التحقق من الترخيص
+            if (!state.isLicensed) {
+                showLicenseModal();
             } else {
-                showChatInterface();
+                // التحقق من تسجيل الدخول
+                if (!state.username) {
+                    elements.loginModal.classList.add('active');
+                    elements.loginUsername.focus();
+                } else {
+                    showChatInterface();
+                }
             }
 
             setupEventListeners();
@@ -854,6 +1032,12 @@
 
         // إعداد المستمعين
         function setupEventListeners() {
+            // زر التفعيل (الترخيص)
+            elements.activateBtn.addEventListener('click', handleLicenseActivation);
+            elements.licenseKey.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLicenseActivation();
+            });
+            
             // تسجيل الدخول
             elements.loginBtn.addEventListener('click', handleLogin);
             elements.loginUsername.addEventListener('keypress', (e) => {
@@ -884,6 +1068,95 @@
             elements.menuBtn.addEventListener('click', toggleMenu);
             elements.menuOverlay.addEventListener('click', toggleMenu);
             elements.logoutBtn.addEventListener('click', handleLogout);
+            
+            // إدخال مفتاح الترخيص
+            elements.licenseKey.addEventListener('input', formatLicenseKey);
+        }
+
+        // عرض شاشة الترخيص
+        function showLicenseModal() {
+            elements.licenseModal.style.display = 'flex';
+            elements.licenseKey.focus();
+        }
+
+        // إخفاء شاشة الترخيص
+        function hideLicenseModal() {
+            elements.licenseModal.style.display = 'none';
+        }
+
+        // تنسيق مفتاح الترخيص أثناء الكتابة
+        function formatLicenseKey() {
+            let value = elements.licenseKey.value.toUpperCase();
+            
+            // إزالة جميع الأحرف غير صالحة
+            value = value.replace(/[^A-Z0-9]/g, '');
+            
+            // تحديث القيمة
+            elements.licenseKey.value = value;
+            
+            // تمكين/تعطيل زر التفعيل
+            elements.activateBtn.disabled = value.length !== 14;
+        }
+
+        // تفعيل الترخيص
+        function handleLicenseActivation() {
+            const key = elements.licenseKey.value.trim().toUpperCase();
+            
+            if (key.length !== 14) {
+                showLicenseStatus('المفتاح يجب أن يكون 14 حرفاً', 'error');
+                return;
+            }
+
+            // التحقق من صحة المفتاح
+            if (isValidLicenseKey(key)) {
+                // حفظ حالة الترخيص
+                state.isLicensed = true;
+                state.licenseKey = key;
+                localStorage.setItem('wgpt_licensed', 'true');
+                localStorage.setItem('wgpt_license_key', key);
+                
+                // عرض رسالة النجاح
+                showLicenseStatus('✓ تم تفعيل الترخيص بنجاح!', 'success');
+                
+                // الانتقال إلى شاشة تسجيل الدخول بعد ثانيتين
+                setTimeout(() => {
+                    hideLicenseModal();
+                    elements.loginModal.classList.add('active');
+                    elements.loginUsername.focus();
+                }, 2000);
+            } else {
+                showLicenseStatus('❌ مفتاح ترخيص غير صالح', 'error');
+                elements.licenseKey.style.animation = 'shake 0.5s ease';
+                setTimeout(() => {
+                    elements.licenseKey.style.animation = '';
+                }, 500);
+            }
+        }
+
+        // التحقق من صحة مفتاح الترخيص
+        function isValidLicenseKey(key) {
+            // التحقق من الطول
+            if (key.length !== 14) return false;
+            
+            // التحقق من التنسيق (أرقام وحروف إنجليزية فقط)
+            if (!/^[A-Z0-9]{14}$/.test(key)) return false;
+            
+            // التحقق من المفاتيح الصالحة في CONFIG
+            if (CONFIG.VALID_LICENSE_KEYS.includes(key)) {
+                return true;
+            }
+            
+            // يمكنك إضافة شروط التحقق الإضافية هنا
+            // مثلاً: التحقق من checksum أو pattern معين
+            
+            return false;
+        }
+
+        // عرض حالة الترخيص
+        function showLicenseStatus(message, type) {
+            elements.licenseStatus.textContent = message;
+            elements.licenseStatus.className = `license-status ${type}`;
+            elements.licenseStatus.style.display = 'block';
         }
 
         // تسجيل الدخول
@@ -981,7 +1254,8 @@
                         api_key: CONFIG.API_KEY,
                         message: text,
                         session_id: state.sessionId,
-                        user_id: state.username
+                        user_id: state.username,
+                        license_key: state.licenseKey // إرسال مفتاح الترخيص
                     })
                 });
 
@@ -1247,9 +1521,11 @@
             localStorage.clear();
             state.username = '';
             state.conversation = [];
+            state.isLicensed = false;
             state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             
-            elements.loginModal.classList.add('active');
+            elements.loginModal.classList.remove('active');
+            showLicenseModal();
             toggleMenu();
         }
 
@@ -1344,4 +1620,4 @@
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
-</html>
+    </html>
