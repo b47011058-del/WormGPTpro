@@ -954,12 +954,6 @@ textarea::placeholder {
     }
 }
 
-/* زر التبديل النشط */
-.header-btn.active {
-    background: rgba(255, 51, 51, 0.1) !important;
-    border-color: var(--main-red) !important;
-}
-
 /* إشعارات */
 .notification {
     animation: slideInRight 0.3s ease;

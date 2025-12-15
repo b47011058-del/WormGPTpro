@@ -2,7 +2,7 @@
 const CONFIG = {
     CHAT_API_URL: "https://udghbdlcrzvkfsyjqkch.supabase.co/functions/v1/chat",
     API_KEY: "wgpt_Ibpy8rL4-Apdj-3GDX-JKzt-q07HH1W2nb77",
-    IMAGE_API_URL: "https://udghbdlcrzvkfsyjqkch.supabase.co/functions/v1/chat",
+    IMAGE_API_URL: "https://api.example.com/generate-image", // رابط منفصل لإنشاء الصور
     MAX_MESSAGE_LENGTH: 5000,
     VALID_LICENSE_KEYS: [
         "WG4T8H7K9D2F5R",
@@ -39,9 +39,8 @@ const elements = {
     sideMenu: document.getElementById('sideMenu'),
     logoutBtn: document.getElementById('logoutBtn'),
     
-    // صور
+    // صور (منفصل تماماً)
     imageBtn: document.getElementById('imageBtn'),
-    toggleImageBtn: document.getElementById('toggleImageBtn'),
     imageModal: document.getElementById('imageModal'),
     imagePrompt: document.getElementById('imagePrompt'),
     imageSize: document.getElementById('imageSize'),
@@ -66,7 +65,8 @@ let state = {
     recognition: null,
     isConnected: true,
     generatedImageData: null,
-    imageGenerationEnabled: localStorage.getItem('wgpt_image_enabled') !== 'false' // مفعل افتراضياً
+    // إزالة التبديل بين المحادثة والصور
+    currentMode: 'chat' // 'chat' أو 'image'
 };
 
 // ==================== تهيئة التطبيق ====================
@@ -86,9 +86,6 @@ function initApp() {
 
     setupEventListeners();
     updateConnectionStatus();
-    
-    // تهيئة زر التبديل
-    updateImageToggleButton();
     
     window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
@@ -130,9 +127,8 @@ function setupEventListeners() {
     elements.menuOverlay.addEventListener('click', toggleMenu);
     elements.logoutBtn.addEventListener('click', handleLogout);
     
-    // إنشاء الصور
+    // إنشاء الصور (منفصل)
     elements.imageBtn.addEventListener('click', showImageModal);
-    elements.toggleImageBtn.addEventListener('click', toggleImageGeneration);
     elements.generateImageBtn.addEventListener('click', handleGenerateImage);
     elements.downloadImageBtn.addEventListener('click', downloadImage);
     elements.newImageBtn.addEventListener('click', resetImageForm);
@@ -288,7 +284,8 @@ async function sendMessage() {
                 message: text,
                 session_id: state.sessionId,
                 user_id: state.username,
-                license_key: state.licenseKey
+                license_key: state.licenseKey,
+                mode: 'chat' // تحديد أن هذا طلب محادثة
             })
         });
 
@@ -388,98 +385,8 @@ function addMessage(role, text, animate = true) {
     scrollToBottom();
 }
 
-// ==================== تبديل إنشاء الصور ====================
-function toggleImageGeneration() {
-    state.imageGenerationEnabled = !state.imageGenerationEnabled;
-    
-    // حفظ الحالة
-    localStorage.setItem('wgpt_image_enabled', state.imageGenerationEnabled);
-    
-    // تحديث مظهر الزر
-    updateImageToggleButton();
-    
-    // عرض إشعار
-    const status = state.imageGenerationEnabled ? 'مفعل' : 'معطل';
-    const color = state.imageGenerationEnabled ? 'success' : 'error';
-    const icon = state.imageGenerationEnabled ? 'fa-check' : 'fa-times';
-    
-    showNotification(`تم ${status} إنشاء الصور`, color);
-    
-    // إذا تم تعطيله وإذا كانت نافذة الصور مفتوحة، أغلقها
-    if (!state.imageGenerationEnabled && elements.imageModal.classList.contains('active')) {
-        hideImageModal();
-    }
-}
-
-function updateImageToggleButton() {
-    const btn = elements.toggleImageBtn;
-    const icon = btn.querySelector('i');
-    
-    if (state.imageGenerationEnabled) {
-        btn.style.backgroundColor = 'rgba(0, 255, 136, 0.1)';
-        btn.style.borderColor = 'rgba(0, 255, 136, 0.3)';
-        icon.style.color = 'var(--success-green)';
-        icon.className = 'fas fa-camera';
-        btn.title = 'تعطيل إنشاء الصور';
-    } else {
-        btn.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
-        btn.style.borderColor = 'rgba(255, 68, 68, 0.3)';
-        icon.style.color = 'var(--error-red)';
-        icon.className = 'fas fa-camera-slash';
-        btn.title = 'تفعيل إنشاء الصور';
-    }
-}
-
-function showNotification(message, type) {
-    // إنشاء عنصر الإشعار
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-        <span>${message}</span>
-    `;
-    
-    // إضافة الأنماط
-    notification.style.cssText = `
-        position: fixed;
-        top: 80px;
-        right: 20px;
-        background: ${type === 'success' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 68, 68, 0.1)'};
-        border: 1px solid ${type === 'success' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)'};
-        color: ${type === 'success' ? 'var(--success-green)' : 'var(--error-red)'};
-        padding: 12px 20px;
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-        z-index: 10000;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        animation: fadeIn 0.3s ease;
-        max-width: 300px;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // إزالة الإشعار بعد 3 ثوان
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateY(-10px)';
-        notification.style.transition = 'all 0.3s ease';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, 3000);
-}
-
-// ==================== إنشاء الصور ====================
+// ==================== إنشاء الصور (منفصل تماماً) ====================
 function showImageModal() {
-    if (!state.imageGenerationEnabled) {
-        showNotification('إنشاء الصور معطل حالياً. قم بتفعيله أولاً.', 'error');
-        return;
-    }
-    
     elements.imageModal.classList.add('active');
     elements.imagePrompt.focus();
 }
@@ -520,7 +427,9 @@ async function handleGenerateImage() {
             elements.generatedImage.src = imageData.url;
             elements.imagePreview.style.display = 'block';
             showImageStatus('✅ تم إنشاء الصورة بنجاح', 'success');
-            addImageMessage(prompt, imageData.url);
+            
+            // إضافة الصورة إلى المحادثة كرسالة منفصلة
+            addImageMessageToChat(prompt, imageData.url);
         }
     } catch (error) {
         console.error('خطأ في إنشاء الصورة:', error);
@@ -549,18 +458,18 @@ async function generateImageAPI(prompt, width, height, style) {
     }
     
     try {
+        // استخدام API منفصل تماماً لإنشاء الصور
         const response = await fetch(CONFIG.IMAGE_API_URL, {
             method: "POST",
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${CONFIG.API_KEY}`
             },
             body: JSON.stringify({
-                api_key: CONFIG.API_KEY,
-                generate_image: true,
-                image_prompt: enhancedPrompt,
-                image_width: width,
-                image_height: height,
-                session_id: state.sessionId,
+                prompt: enhancedPrompt,
+                width: width,
+                height: height,
+                style: style,
                 user_id: state.username,
                 license_key: state.licenseKey
             })
@@ -573,10 +482,7 @@ async function generateImageAPI(prompt, width, height, style) {
         const data = await response.json();
         
         if (data.success && data.image_url) {
-            // استخدام CORS proxy للصور الخارجية
-            const imageUrl = data.image_url.startsWith('http') ? 
-                `https://corsproxy.io/?${encodeURIComponent(data.image_url)}` : 
-                data.image_url;
+            const imageUrl = data.image_url;
             
             return {
                 url: imageUrl,
@@ -604,41 +510,41 @@ function showImageStatus(message, type) {
 function downloadImage() {
     if (!state.generatedImageData) return;
     
-    // إزالة الـ proxy إذا كان موجوداً
     const imageUrl = state.generatedImageData.originalUrl || state.generatedImageData.url;
-    const cleanUrl = imageUrl.includes('corsproxy.io/?') ? 
-        decodeURIComponent(imageUrl.split('corsproxy.io/?')[1]) : 
-        imageUrl;
-    
     const link = document.createElement('a');
-    link.href = cleanUrl;
+    link.href = imageUrl;
     link.download = `wormgpt_image_${Date.now()}.jpg`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
 
-function addImageMessage(prompt, imageUrl) {
+function addImageMessageToChat(prompt, imageUrl) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message message-bot';
     
     const bubbleDiv = document.createElement('div');
     bubbleDiv.className = 'msg-bubble';
+    bubbleDiv.style.textAlign = 'center';
     
     bubbleDiv.innerHTML = `
-        <div style="margin-bottom: 10px;">
-            <strong>📸 الصورة المنشأة:</strong>
-            <p style="color: #888; margin-top: 5px;">${prompt}</p>
+        <div style="margin-bottom: 15px;">
+            <div style="color: var(--main-red); font-size: 1rem; margin-bottom: 8px;">
+                <i class="fas fa-image"></i> صورة منشأة
+            </div>
+            <div style="font-size: 0.9rem; color: #888; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                ${prompt}
+            </div>
         </div>
-        <div style="border-radius: 8px; overflow: hidden; margin: 10px 0;">
-            <img src="${imageUrl}" alt="الصورة المنشأة" style="width: 100%; border-radius: 8px;">
+        <div style="border-radius: 10px; overflow: hidden; margin: 15px 0; border: 1px solid rgba(255,255,255,0.1);">
+            <img src="${imageUrl}" alt="الصورة المنشأة" style="width: 100%; max-height: 300px; object-fit: contain; background: #000;">
         </div>
-        <div class="msg-actions">
-            <button class="msg-action-btn" onclick="window.open('${imageUrl}', '_blank')">
-                <i class="fas fa-external-link-alt"></i> فتح
+        <div class="msg-actions" style="justify-content: center;">
+            <button class="msg-action-btn" onclick="window.open('${imageUrl}', '_blank')" style="max-width: 120px;">
+                <i class="fas fa-external-link-alt"></i> فتح في نافذة جديدة
             </button>
-            <button class="msg-action-btn" onclick="downloadImageFromChat('${imageUrl}')">
-                <i class="fas fa-download"></i> تنزيل
+            <button class="msg-action-btn" onclick="downloadImageFromChat('${imageUrl}')" style="max-width: 120px;">
+                <i class="fas fa-download"></i> تنزيل الصورة
             </button>
         </div>
     `;
@@ -647,11 +553,13 @@ function addImageMessage(prompt, imageUrl) {
     elements.chatBox.appendChild(messageDiv);
     scrollToBottom();
     
+    // إضافة إلى سجل المحادثة
     state.conversation.push({ 
         role: 'bot', 
-        content: `صورة منشأة: ${prompt}`,
+        content: `[صورة منشأة] ${prompt}`,
         imageUrl: imageUrl,
-        timestamp: new Date().toISOString() 
+        timestamp: new Date().toISOString(),
+        type: 'image'
     });
     saveConversation();
 }
@@ -734,7 +642,7 @@ function clearChat() {
             <h1>كيف يمكنني مساعدتك سيدي؟</h1>
             <h2>مرحباً بك في WormGPT</h2>
             <div class="welcome-badge">
-                <span>✨ إنشاء صور + محادثة ✨</span>
+                <span>✨ محادثة ذكية ✨</span>
             </div>
         </div>
     `;
@@ -813,7 +721,6 @@ function handleLogout() {
     state.username = '';
     state.conversation = [];
     state.isLicensed = false;
-    state.imageGenerationEnabled = true;
     state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
     elements.loginModal.classList.remove('active');
@@ -908,13 +815,8 @@ window.speakMessage = function(btn) {
 };
 
 window.downloadImageFromChat = function(imageUrl) {
-    // إزالة الـ proxy إذا كان موجوداً
-    const cleanUrl = imageUrl.includes('corsproxy.io/?') ? 
-        decodeURIComponent(imageUrl.split('corsproxy.io/?')[1]) : 
-        imageUrl;
-    
     const link = document.createElement('a');
-    link.href = cleanUrl;
+    link.href = imageUrl;
     link.download = `wormgpt_image_${Date.now()}.jpg`;
     link.target = '_blank';
     document.body.appendChild(link);
