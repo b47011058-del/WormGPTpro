@@ -41,6 +41,7 @@ const elements = {
     
     // صور
     imageBtn: document.getElementById('imageBtn'),
+    toggleImageBtn: document.getElementById('toggleImageBtn'),
     imageModal: document.getElementById('imageModal'),
     imagePrompt: document.getElementById('imagePrompt'),
     imageSize: document.getElementById('imageSize'),
@@ -64,7 +65,8 @@ let state = {
     isRecording: false,
     recognition: null,
     isConnected: true,
-    generatedImageData: null
+    generatedImageData: null,
+    imageGenerationEnabled: localStorage.getItem('wgpt_image_enabled') !== 'false' // مفعل افتراضياً
 };
 
 // ==================== تهيئة التطبيق ====================
@@ -84,6 +86,9 @@ function initApp() {
 
     setupEventListeners();
     updateConnectionStatus();
+    
+    // تهيئة زر التبديل
+    updateImageToggleButton();
     
     window.addEventListener('online', updateConnectionStatus);
     window.addEventListener('offline', updateConnectionStatus);
@@ -127,6 +132,7 @@ function setupEventListeners() {
     
     // إنشاء الصور
     elements.imageBtn.addEventListener('click', showImageModal);
+    elements.toggleImageBtn.addEventListener('click', toggleImageGeneration);
     elements.generateImageBtn.addEventListener('click', handleGenerateImage);
     elements.downloadImageBtn.addEventListener('click', downloadImage);
     elements.newImageBtn.addEventListener('click', resetImageForm);
@@ -382,8 +388,98 @@ function addMessage(role, text, animate = true) {
     scrollToBottom();
 }
 
+// ==================== تبديل إنشاء الصور ====================
+function toggleImageGeneration() {
+    state.imageGenerationEnabled = !state.imageGenerationEnabled;
+    
+    // حفظ الحالة
+    localStorage.setItem('wgpt_image_enabled', state.imageGenerationEnabled);
+    
+    // تحديث مظهر الزر
+    updateImageToggleButton();
+    
+    // عرض إشعار
+    const status = state.imageGenerationEnabled ? 'مفعل' : 'معطل';
+    const color = state.imageGenerationEnabled ? 'success' : 'error';
+    const icon = state.imageGenerationEnabled ? 'fa-check' : 'fa-times';
+    
+    showNotification(`تم ${status} إنشاء الصور`, color);
+    
+    // إذا تم تعطيله وإذا كانت نافذة الصور مفتوحة، أغلقها
+    if (!state.imageGenerationEnabled && elements.imageModal.classList.contains('active')) {
+        hideImageModal();
+    }
+}
+
+function updateImageToggleButton() {
+    const btn = elements.toggleImageBtn;
+    const icon = btn.querySelector('i');
+    
+    if (state.imageGenerationEnabled) {
+        btn.style.backgroundColor = 'rgba(0, 255, 136, 0.1)';
+        btn.style.borderColor = 'rgba(0, 255, 136, 0.3)';
+        icon.style.color = 'var(--success-green)';
+        icon.className = 'fas fa-camera';
+        btn.title = 'تعطيل إنشاء الصور';
+    } else {
+        btn.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
+        btn.style.borderColor = 'rgba(255, 68, 68, 0.3)';
+        icon.style.color = 'var(--error-red)';
+        icon.className = 'fas fa-camera-slash';
+        btn.title = 'تفعيل إنشاء الصور';
+    }
+}
+
+function showNotification(message, type) {
+    // إنشاء عنصر الإشعار
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    
+    // إضافة الأنماط
+    notification.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: ${type === 'success' ? 'rgba(0, 255, 136, 0.1)' : 'rgba(255, 68, 68, 0.1)'};
+        border: 1px solid ${type === 'success' ? 'rgba(0, 255, 136, 0.3)' : 'rgba(255, 68, 68, 0.3)'};
+        color: ${type === 'success' ? 'var(--success-green)' : 'var(--error-red)'};
+        padding: 12px 20px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        animation: fadeIn 0.3s ease;
+        max-width: 300px;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // إزالة الإشعار بعد 3 ثوان
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateY(-10px)';
+        notification.style.transition = 'all 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 300);
+    }, 3000);
+}
+
 // ==================== إنشاء الصور ====================
 function showImageModal() {
+    if (!state.imageGenerationEnabled) {
+        showNotification('إنشاء الصور معطل حالياً. قم بتفعيله أولاً.', 'error');
+        return;
+    }
+    
     elements.imageModal.classList.add('active');
     elements.imagePrompt.focus();
 }
@@ -717,6 +813,7 @@ function handleLogout() {
     state.username = '';
     state.conversation = [];
     state.isLicensed = false;
+    state.imageGenerationEnabled = true;
     state.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     
     elements.loginModal.classList.remove('active');

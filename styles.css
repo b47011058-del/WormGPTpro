@@ -943,6 +943,40 @@ textarea::placeholder {
     20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* زر التبديل النشط */
+.header-btn.active {
+    background: rgba(255, 51, 51, 0.1) !important;
+    border-color: var(--main-red) !important;
+}
+
+/* إشعارات */
+.notification {
+    animation: slideInRight 0.3s ease;
+}
+
+.notification.success {
+    background: rgba(0, 255, 136, 0.1);
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    color: var(--success-green);
+}
+
+.notification.error {
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: var(--error-red);
+}
+
 /* تعديلات الموبايل */
 @media (max-width: 600px) {
     .chat-header { padding: 15px 20px; }
