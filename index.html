@@ -76,73 +76,6 @@
         </div>
     </div>
 
-    <!-- نافذة إنشاء الصور (منفصلة) -->
-    <div class="image-modal" id="imageModal">
-        <div class="image-box">
-            <div class="image-header">
-                <i class="fas fa-image"></i>
-                <h2 class="image-title">منشئ الصور الذكي</h2>
-                <p class="image-subtitle">
-                    وصف الصورة التي تريد إنشاءها باللغة الإنجليزية
-                </p>
-            </div>
-            
-            <div class="input-group">
-                <label for="imagePrompt">وصف الصورة</label>
-                <textarea 
-                    id="imagePrompt" 
-                    placeholder="مثال: a beautiful sunset over mountains, digital art, 8k"
-                    rows="3"
-                ></textarea>
-            </div>
-            
-            <div class="image-options">
-                <div class="option-group">
-                    <label>الحجم</label>
-                    <select id="imageSize">
-                        <option value="512x512">512×512</option>
-                        <option value="768x768">768×768</option>
-                        <option value="1024x1024" selected>1024×1024</option>
-                    </select>
-                </div>
-                
-                <div class="option-group">
-                    <label>النمط</label>
-                    <select id="imageStyle">
-                        <option value="realistic">واقعي</option>
-                        <option value="digital_art">فن رقمي</option>
-                        <option value="anime">أنمي</option>
-                        <option value="painting">رسم</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div id="imageStatus" class="image-status" style="display: none;"></div>
-            
-            <button class="btn-primary" id="generateImageBtn">
-                <i class="fas fa-magic"></i>
-                <span>إنشاء الصورة</span>
-            </button>
-            
-            <div class="image-preview" id="imagePreview" style="display: none;">
-                <img id="generatedImage" src="" alt="الصورة المنشأة">
-                <div class="image-actions">
-                    <button class="image-action-btn" id="downloadImageBtn">
-                        <i class="fas fa-download"></i> تنزيل
-                    </button>
-                    <button class="image-action-btn" id="newImageBtn">
-                        <i class="fas fa-redo"></i> إنشاء أخرى
-                    </button>
-                </div>
-            </div>
-            
-            <button class="btn-secondary" id="closeImageBtn" style="margin-top: 15px;">
-                <i class="fas fa-times"></i>
-                <span>إغلاق</span>
-            </button>
-        </div>
-    </div>
-
     <!-- القائمة الجانبية -->
     <div class="menu-overlay" id="menuOverlay"></div>
     <div class="side-menu" id="sideMenu">
@@ -171,10 +104,6 @@
                         <i class="fas fa-code" style="color: var(--main-red);"></i>
                         <span>دعم الأكواد</span>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                        <i class="fas fa-image" style="color: var(--main-red);"></i>
-                        <span>إنشاء الصور</span>
-                    </div>
                 </div>
             </div>
             
@@ -191,11 +120,6 @@
         <header class="chat-header">
             <div id="title">WormGPT HackerExos</div>
             <div style="display: flex; align-items: center; gap: 10px;">
-                <!-- زر إنشاء الصور (منفصل) -->
-                <button class="header-btn" id="imageBtn" title="إنشاء صورة">
-                    <i class="fas fa-image"></i>
-                </button>
-                <!-- إزالة زر التبديل -->
                 <button class="header-btn" id="clearBtn" title="مسح المحادثة">
                     <i class="fas fa-trash"></i>
                 </button>
@@ -214,7 +138,7 @@
                 <h1>كيف يمكنني مساعدتك سيدي؟</h1>
                 <h2>مرحباً بك في WormGPT</h2>
                 <div class="welcome-badge">
-                    <span>✨ محادثة ذكية ✨</span>
+                    <span>✨ مساعد ذكي ✨</span>
                 </div>
             </div>
         </main>
@@ -240,7 +164,7 @@
             </div>
 
             <p class="footer-note">
-                استخدم زر الكاميرا لإنشاء صور AI | هذا النموذج معطل، قد لا يساعدك في بعض الأحيان
+                مساعد ذكي للمحادثة والنصوص | هذا النموذج معطل، قد لا يساعدك في بعض الأحيان
             </p>
         </footer>
     </div>
