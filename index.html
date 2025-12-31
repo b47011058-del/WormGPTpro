@@ -1,174 +1,18 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WormGPT - High Precision UI</title>
-    <!-- مكتبات JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-    <!-- شاشة الترخيص -->
-    <div class="license-modal" id="licenseModal">
-        <div class="license-box">
-            <div class="license-header">
-                <i class="fas fa-key"></i>
-                <h2 class="license-title">WORMGPT ACCESS</h2>
-                <p class="license-subtitle">
-                    أدخل مفتاح الترخيص المكون من 14 حرفاً (أرقام وحروف إنجليزية)
-                </p>
-                
-                <div class="key-format">XXXX-XXXX-XXXX</div>
-            </div>
-            
-            <div class="input-group">
-                <label for="licenseKey">مفتاح الترخيص</label>
-                <input 
-                    type="text" 
-                    id="licenseKey" 
-                    placeholder="أدخل المفتاح هنا"
-                    maxlength="14"
-                    autocomplete="off"
-                    autocapitalize="characters"
-                >
-            </div>
-            
-            <div id="licenseStatus" class="license-status" style="display: none;"></div>
-            
-            <button class="btn-primary" id="activateBtn">
-                <i class="fas fa-unlock"></i>
-                <span>تفعيل</span>
-            </button>
-            
-            <div class="license-info">
-                <span>الإصدار: Premium 2.0</span>
-                <span>متطلب: 14 حرف</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- شاشة تسجيل الدخول -->
-    <div class="login-modal" id="loginModal">
-        <div class="login-box">
-            <div class="login-logo">
-                <i class="fas fa-robot"></i>
-            </div>
-            <h2 class="login-title">WORMGPT</h2>
-            <p class="login-subtitle">AI Assistant - No Limits, No Restrictions</p>
-            
-            <div class="input-group">
-                <label for="loginUsername">اسم المستخدم</label>
-                <input type="text" id="loginUsername" placeholder="أدخل اسمك" autocomplete="off">
-            </div>
-            
-            <button class="btn-primary" id="loginBtn">بدء المحادثة</button>
-            
-            <div style="margin-top: 24px; display: flex; justify-content: space-between; font-size: 0.8rem; color: #666;">
-                <span>الحالة: <span style="color: var(--main-red)">● مفعل</span></span>
-                <span>وصول غير محدود ✓</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- القائمة الجانبية -->
-    <div class="menu-overlay" id="menuOverlay"></div>
-    <div class="side-menu" id="sideMenu">
-        <div style="margin-bottom: 30px;">
-            <h3 style="color: var(--main-red); margin-bottom: 20px;">إعدادات WormGPT</h3>
-            <div style="background: rgba(255, 51, 51, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-                <div style="color: var(--main-red); font-size: 0.9rem; margin-bottom: 5px;">حالة الحساب</div>
-                <div style="color: var(--main-red); font-size: 1rem;">
-                    <i class="fas fa-check-circle"></i>
-                    <span style="margin-right: 8px;">● نشط & غير محدود</span>
-                </div>
-            </div>
-            
-            <div style="margin-bottom: 20px;">
-                <div style="color: #888; font-size: 0.9rem; margin-bottom: 10px;">الميزات</div>
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                        <i class="fas fa-infinity" style="color: var(--main-red);"></i>
-                        <span>رسائل غير محدودة</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                        <i class="fas fa-microphone" style="color: var(--main-red);"></i>
-                        <span>إدخال صوتي</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
-                        <i class="fas fa-code" style="color: var(--main-red);"></i>
-                        <span>دعم الأكواد</span>
-                    </div>
-                </div>
-            </div>
-            
-            <button id="logoutBtn" style="width: 100%; padding: 12px; background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.3); color: var(--main-red); border-radius: 10px; font-size: 1rem; cursor: pointer; transition: all 0.2s; margin-top: 20px;">
-                <i class="fas fa-sign-out-alt"></i>
-                <span style="margin-right: 8px;">تسجيل الخروج</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- واجهة المحادثة الرئيسية -->
-    <div id="chat-wrapper">
-        <!-- الهيدر العلوي -->
-        <header class="chat-header">
-            <div id="title">WormGPT HackerExos</div>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <button class="header-btn" id="clearBtn" title="مسح المحادثة">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <div class="header-btn" id="menuBtn" title="الإعدادات">
-                    <div style="width: 20px; height: 20px; border: 2px solid var(--main-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative;">
-                        <div style="width: 10px; height: 10px; border: 2px solid var(--main-red); border-radius: 50%; border-top-color: transparent; transform: rotate(45deg);"></div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- منطقة المحادثة -->
-        <main id="chat-box">
-            <!-- شاشة الترحيب -->
-            <div class="welcome-screen">
-                <h1>كيف يمكنني مساعدتك سيدي؟</h1>
-                <h2>مرحباً بك في WormGPT</h2>
-                <div class="welcome-badge">
-                    <span>✨ مساعد ذكي ✨</span>
-                </div>
-            </div>
-        </main>
-
-        <!-- شريط الإدخال السفلي -->
-        <footer class="input-wrapper">
-            <div class="divider"></div>
-            
-            <div class="input-box">
-                <button class="send-btn" id="submitBtn" disabled>
-                    <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
-                </button>
-
-                <textarea 
-                    id="chatInput" 
-                    placeholder="اسأل عن أي شيء"
-                    rows="1"
-                ></textarea>
-
-                <button class="mic-icon" id="micBtn">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-                </button>
-            </div>
-
-            <p class="footer-note">
-                مساعد ذكي للمحادثة والنصوص | هذا النموذج معطل، قد لا يساعدك في بعض الأحيان
-            </p>
-        </footer>
-    </div>
-
-    <script src="script.js"></script>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>DarkGPT</title>
+    <link rel="icon" type="image/png" href="/assets/robot-Df0toRY5.png" />
+    <script type="module" crossorigin src="/assets/index-C8lV60t5.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DXu60sdL.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Use absolute path so it works on nested routes like /admin -->
+    
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9941ab1748ba74cb',t:'MTc2MTM5NDgyOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"84afeb0b378d446890d326dc117345c5","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
+
