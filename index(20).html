@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>WormGPT - Black & Red Edition</title>
+    
+    <!-- الخطوط والأيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- المكتبات -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark-reasonable.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.8/purify.min.js"></script>
+
+    <style>
+        :root {
+            /* ألوان الأحمر والأسود */
+            --blood-red: #ff0033;
+            --dark-red: #cc0000;
+            --light-red: #ff3366;
+            --deep-black: #000000;
+            --dark-gray: #111111;
+            --medium-gray: #222222;
+            --light-gray: #333333;
+            --text-red: #ff4d4d;
+            --text-white: #ffffff;
+            --text-gray: #cccccc;
+            --text-muted: #999999;
+            
+            /* التأثيرات */
+            --glow-red: 0 0 20px rgba(255, 0, 51, 0.7);
+            --glow-dark: 0 0 30px rgba(0, 0, 0, 0.9);
+            --border-red: rgba(255, 0, 51, 0.5);
+            --border-dark: rgba(255, 255, 255, 0.1);
+            
+            /* الخطوط */
+            --font-main: 'Cairo', sans-serif;
+            --font-code: 'JetBrains Mono', monospace;
+            
+            /* الخصائص */
+            --transition-quick: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-circle: 50%;
+        }
+
+        /* إعادة التعيين */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* الأساسيات */
+        body {
+            background: linear-gradient(135deg, var(--deep-black) 0%, var(--dark-gray) 100%);
+            color: var(--text-white);
+            font-family: var(--font-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        /* تأثير الدم */
+        .blood-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(255, 0, 51, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(204, 0, 0, 0.1) 0%, transparent 50%),
+                linear-gradient(45deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* الشبكة الحمراء */
+        .grid-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(255, 0, 51, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 0, 51, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* شريط التحميل */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--blood-red), var(--dark-red));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: var(--glow-red);
+        }
+
+        /* الهيدر */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-red);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.7);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            color: var(--blood-red);
+            text-shadow: var(--glow-red);
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { 
+                text-shadow: var(--glow-red);
+                transform: scale(1);
+            }
+            50% { 
+                text-shadow: 0 0 30px rgba(255, 0, 51, 1);
+                transform: scale(1.05);
+            }
+        }
+
+        .logo-text {
+            font-family: var(--font-code);
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -1px;
+            background: linear-gradient(45deg, var(--blood-red), var(--light-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        /* الأزرار */
+        .btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-red);
+            color: var(--text-red);
+            padding: 0.6rem 1rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition-quick);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.85rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            background: rgba(255, 0, 51, 0.2);
+            border-color: var(--blood-red);
+            color: var(--text-white);
+            transform: translateY(-1px);
+            box-shadow: var(--glow-red);
+        }
+
+        .btn-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-red);
+            cursor: pointer;
+            transition: var(--transition-quick);
+            color: var(--text-red);
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 0, 51, 0.3);
+            border-color: var(--blood-red);
+            color: var(--text-white);
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: var(--glow-red);
+        }
+
+        /* منطقة المحادثة */
+        .chat-container {
+            max-width: 100%;
+            margin: 70px 0 140px;
+            padding: 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        @media (min-width: 768px) {
+            .chat-container {
+                max-width: 800px;
+                margin: 70px auto 140px;
+                padding: 2rem;
+            }
+        }
+
+        /* شاشة الترحيب */
+        .welcome-screen {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            background: rgba(17, 17, 17, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border-red);
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-screen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--blood-red), transparent);
+            animation: scanline 3s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .welcome-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--blood-red), var(--dark-red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 480px) {
+            .welcome-title {
+                font-size: 2rem;
+            }
+        }
+
+        .welcome-subtitle {
+            color: var(--text-gray);
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ميزات الهواتف */
+        .mobile-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        @media (max-width: 480px) {
+            .mobile-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .mobile-feature {
+            background: rgba(34, 34, 34, 0.7);
+            padding: 1.25rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-dark);
+            transition: var(--transition-quick);
+            text-align: center;
+        }
+
+        .mobile-feature:hover {
+            border-color: var(--border-red);
+            transform: translateY(-3px);
+        }
+
+        .mobile-feature-icon {
+            font-size: 1.8rem;
+            color: var(--blood-red);
+            margin-bottom: 0.75rem;
+        }
+
+        .mobile-feature-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-white);
+            font-size: 0.95rem;
+        }
+
+        .mobile-feature-desc {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        /* الرسائل */
+        .message {
+            margin-bottom: 1.5rem;
+            animation: slideIn 0.3s ease-out;
+            max-width: 100%;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-user {
+            margin-left: auto;
+            width: 85%;
+        }
+
+        @media (min-width: 768px) {
+            .message-user {
+                width: 70%;
+            }
+        }
+
+        .message-ai {
+            margin-right: auto;
+            width: 95%;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-circle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+            background: var(--medium-gray);
+            border: 2px solid var(--border-dark);
+        }
+
+        .message-user .message-avatar {
+            background: linear-gradient(135deg, var(--dark-red), #800000);
+            border-color: var(--border-red);
+            order: 2;
+        }
+
+        .message-ai .message-avatar {
+            background: linear-gradient(135deg, var(--blood-red), var(--dark-red));
+            border-color: var(--border-red);
+        }
+
+        .message-sender {
+            font-weight: 700;
+            color: var(--text-white);
+            font-size: 0.95rem;
+        }
+
+        .message-user .message-sender {
+            margin-left: auto;
+            order: 1;
+            color: var(--text-red);
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .message-content {
+            background: var(--medium-gray);
+            padding: 1rem;
+            border-radius: var(--radius-lg);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-dark);
+        }
+
+        .message-user .message-content {
+            background: rgba(255, 0, 51, 0.1);
+            border: 1px solid var(--border-red);
+            border-top-right-radius: 4px;
+        }
+
+        .message-ai .message-content {
+            background: rgba(17, 17, 17, 0.8);
+            border: 1px solid var(--border-dark);
+            border-left: 3px solid var(--blood-red);
+            border-top-left-radius: 4px;
+        }
+
+        .message-text {
+            line-height: 1.6;
+            word-break: break-word;
+            font-size: 0.95rem;
+        }
+
+        /* شريط تحكم الرسالة */
+        .message-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            color: var(--text-gray);
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition-quick);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 0, 51, 0.1);
+            border-color: var(--border-red);
+            color: var(--text-red);
+        }
+
+        /* كتل الكود */
+        pre {
+            background: var(--dark-gray);
+            border-radius: var(--radius-md);
+            margin: 0.75rem 0;
+            border: 1px solid var(--border-dark);
+            overflow: hidden;
+            max-width: 100%;
+        }
+
+        .code-header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-dark);
+        }
+
+        .code-language {
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            color: var(--text-red);
+            font-weight: 600;
+        }
+
+        pre code {
+            display: block;
+            padding: 1rem !important;
+            font-family: var(--font-code);
+            font-size: 0.85rem;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* مؤشر الكتابة */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            background: rgba(17, 17, 17, 0.9);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-dark);
+            margin: 1rem 0;
+            max-width: 200px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .typing-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: var(--radius-circle);
+            background: var(--blood-red);
+            animation: typingBounce 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingBounce {
+            0%, 100% { transform: translateY(0); opacity: 0.3; }
+            50% { transform: translateY(-3px); opacity: 1; }
+        }
+
+        /* منطقة الإدخال */
+        .input-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--border-red);
+            z-index: 100;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        @media (min-width: 768px) {
+            .input-container {
+                padding: 1rem 2rem;
+            }
+        }
+
+        .input-wrapper {
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            .input-wrapper {
+                max-width: 800px;
+            }
+        }
+
+        .input-main {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            background: var(--dark-gray);
+            border: 1px solid var(--border-red);
+            border-radius: var(--radius-xl);
+            padding: 0.75rem;
+            transition: var(--transition-quick);
+        }
+
+        .input-main:focus-within {
+            border-color: var(--blood-red);
+            box-shadow: var(--glow-red);
+        }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-white);
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            resize: none;
+            min-height: 20px;
+            max-height: 120px;
+            padding: 0.5rem 0;
+            line-height: 1.5;
+        }
+
+        textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* أزرار الإدخال */
+        .input-btn {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: var(--radius-circle);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-red);
+            color: var(--text-red);
+            cursor: pointer;
+            transition: var(--transition-quick);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 480px) {
+            .input-btn {
+                width: 2.25rem;
+                height: 2.25rem;
+                font-size: 0.9rem;
+            }
+        }
+
+        .input-btn:hover {
+            background: rgba(255, 0, 51, 0.2);
+            border-color: var(--blood-red);
+            color: var(--text-white);
+            transform: translateY(-1px);
+        }
+
+        .input-btn.active {
+            background: var(--blood-red);
+            color: var(--deep-black);
+            border-color: var(--blood-red);
+            box-shadow: var(--glow-red);
+        }
+
+        .input-btn.send-btn {
+            background: linear-gradient(135deg, var(--blood-red), var(--dark-red));
+            color: var(--text-white);
+            border: none;
+            font-weight: 700;
+        }
+
+        .input-btn.send-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: var(--glow-red), 0 5px 15px rgba(255, 0, 51, 0.3);
+        }
+
+        .input-btn.send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* معاينة الملفات */
+        .files-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            max-height: 80px;
+            overflow-y: auto;
+        }
+
+        .files-preview::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .files-preview::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+
+        .files-preview::-webkit-scrollbar-thumb {
+            background: var(--blood-red);
+            border-radius: 2px;
+        }
+
+        .file-chip {
+            background: rgba(255, 0, 51, 0.1);
+            border: 1px solid var(--border-red);
+            padding: 0.4rem 0.75rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            animation: slideIn 0.2s ease-out;
+            max-width: 200px;
+        }
+
+        .file-chip .remove {
+            cursor: pointer;
+            color: var(--text-red);
+            margin-right: 0.25rem;
+            transition: var(--transition-quick);
+            font-size: 1rem;
+        }
+
+        .file-chip .remove:hover {
+            color: var(--text-white);
+            transform: scale(1.2);
+        }
+
+        /* التنبيهات للهواتف */
+        .notification {
+            position: fixed;
+            top: 70px;
+            right: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--border-red);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1000;
+            animation: slideDown 0.3s ease-out;
+            box-shadow: var(--glow-red);
+            backdrop-filter: blur(10px);
+        }
+
+        @media (min-width: 768px) {
+            .notification {
+                right: 2rem;
+                left: auto;
+                max-width: 300px;
+            }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* شريط الحالة */
+        .status-bar {
+            position: fixed;
+            bottom: 80px;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border-dark);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 90;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        @media (min-width: 768px) {
+            .status-bar {
+                bottom: 90px;
+                left: 2rem;
+                right: 2rem;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        }
+
+        /* قائمة السياق للهواتف */
+        .context-menu-mobile {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 1px solid var(--border-red);
+            padding: 1rem;
+            z-index: 1000;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .context-menu-mobile.show {
+            transform: translateY(0);
+        }
+
+        .menu-item-mobile {
+            padding: 0.75rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-dark);
+            border-radius: var(--radius-md);
+            color: var(--text-white);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: var(--transition-quick);
+        }
+
+        .menu-item-mobile:hover {
+            background: rgba(255, 0, 51, 0.1);
+            border-color: var(--border-red);
+        }
+
+        /* إيماءات الهواتف */
+        .swipe-hint {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 0, 51, 0.1);
+            border: 1px solid var(--border-red);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg);
+            font-size: 0.8rem;
+            color: var(--text-red);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 90;
+            animation: fadeInOut 3s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* تحسينات للهواتف */
+        @media (max-width: 480px) {
+            /* تحسين النصوص للشاشات الصغيرة */
+            .message-text {
+                font-size: 0.9rem;
+            }
+            
+            pre code {
+                font-size: 0.75rem;
+                padding: 0.75rem !important;
+            }
+            
+            /* تحسين الأزرار لللمس */
+            .btn, .control-btn, .input-btn {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            /* تحسين المسافات */
+            .message {
+                margin-bottom: 1rem;
+            }
+            
+            .message-content {
+                padding: 0.75rem;
+            }
+            
+            /* إخفاء بعض العناصر في الهواتف */
+            .header-controls .btn:not(.btn-icon) {
+                display: none;
+            }
+        }
+
+        /* تحسينات للوضع الأفقي */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .header {
+                padding: 0.5rem 1rem;
+            }
+            
+            .chat-container {
+                margin-top: 60px;
+                margin-bottom: 100px;
+            }
+            
+            .input-container {
+                padding: 0.5rem;
+            }
+            
+            .welcome-screen {
+                padding: 1.5rem;
+            }
+        }
+
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark-gray);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, var(--blood-red), var(--dark-red));
+            border-radius: 3px;
+            transition: var(--transition-quick);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, var(--light-red), var(--blood-red));
+        }
+
+        /* تحسينات لشاشات AMOLED */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #000000;
+            }
+            
+            .message-ai .message-content {
+                background: rgba(0, 0, 0, 0.7);
+            }
+        }
+
+        /* تأثيرات اللمس */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 0, 51, 0.3);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- تأثيرات الخلفية -->
+    <div class="blood-effect"></div>
+    <div class="grid-lines"></div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- الهيدر -->
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-skull-crossbones"></i>
+            </div>
+            <div class="logo-text">WormGPT</div>
+        </div>
+        
+        <div class="header-controls">
+            <button class="btn" onclick="app.clearChat()">
+                <i class="fas fa-trash"></i>
+                <span class="desktop-only">مسح</span>
+            </button>
+            <button class="btn-icon" onclick="app.toggleTheme()" id="themeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="btn-icon" onclick="app.showMenu()">
+                <i class="fas fa-ellipsis-h"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- منطقة المحادثة -->
+    <main class="chat-container" id="chatContainer">
+        <!-- شاشة الترحيب -->
+        <div class="welcome-screen" id="welcomeScreen">
+            <h1 class="welcome-title">WormGPT Black Edition</h1>
+            <p class="welcome-subtitle">
+                نظام ذكاء اصطناعي احترافي بتصميم أحمر وأسود متكامل مع الهواتف
+            </p>
+            
+            <div class="mobile-features">
+                <div class="mobile-feature">
+                    <div class="mobile-feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="mobile-feature-title">متكامل مع الهواتف</h3>
+                    <p class="mobile-feature-desc">تصميم متجاوب يعمل بكفاءة على جميع الشاشات</p>
+                </div>
+                
+                <div class="mobile-feature">
+                    <div class="mobile-feature-icon">
+                        <i class="fas fa-file-upload"></i>
+                    </div>
+                    <h3 class="mobile-feature-title">رفع الملفات</h3>
+                    <p class="mobile-feature-desc">ادعم الصور، النصوص، والمستندات بسهولة</p>
+                </div>
+                
+                <div class="mobile-feature">
+                    <div class="mobile-feature-icon">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <h3 class="mobile-feature-title">صوتي</h3>
+                    <p class="mobile-feature-desc">تحدث واستمع للردود (بدون وضع مباشر)</p>
+                </div>
+                
+                <div class="mobile-feature">
+                    <div class="mobile-feature-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3 class="mobile-feature-title">دعم الكود</h3>
+                    <p class="mobile-feature-desc">تمييز صيغ البرمجة وتنسيقها تلقائياً</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- الرسائل تظهر هنا -->
+    </main>
+
+    <!-- شريط الحالة -->
+    <div class="status-bar" id="statusBar">
+        <span id="statusText">جاهز</span>
+        <span id="connectionStatus">🟢 متصل</span>
+    </div>
+
+    <!-- تلميح السحب -->
+    <div class="swipe-hint" id="swipeHint">
+        <i class="fas fa-arrow-up"></i>
+        اسحب لأعلى للرؤية السابقة
+    </div>
+
+    <!-- منطقة الإدخال -->
+    <div class="input-container">
+        <div class="input-wrapper">
+            <!-- معاينة الملفات -->
+            <div class="files-preview" id="filesPreview"></div>
+            
+            <div class="input-main">
+                <!-- زر رفع الملفات -->
+                <button class="input-btn" onclick="app.toggleFileInput()" title="رفع ملفات">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                
+                <!-- حقل النص -->
+                <textarea 
+                    id="messageInput" 
+                    placeholder="اكتب رسالتك..." 
+                    rows="1"
+                    oninput="app.adjustTextarea(this)"
+                ></textarea>
+                
+                <!-- زر الإرسال -->
+                <button class="input-btn send-btn" id="sendBtn" onclick="app.sendMessage()" disabled title="إرسال">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+            
+            <!-- أزرار التحكم الإضافية -->
+            <div class="input-controls">
+                <button class="input-btn" onclick="app.toggleVoice()" id="voiceBtn" title="التحدث">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                <button class="input-btn" onclick="app.speakLastResponse()" title="تكرار الرد">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+                <button class="input-btn" onclick="app.copyConversation()" title="نسخ المحادثة">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="input-btn" onclick="app.clearInput()" title="مسح النص">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- قائمة السياق للهواتف -->
+    <div class="context-menu-mobile" id="contextMenu">
+        <div class="menu-item-mobile" onclick="app.exportConversation()">
+            <i class="fas fa-download"></i>
+            <span>تصدير المحادثة</span>
+        </div>
+        <div class="menu-item-mobile" onclick="app.clearChat()">
+            <i class="fas fa-trash"></i>
+            <span>مسح المحادثة</span>
+        </div>
+        <div class="menu-item-mobile" onclick="app.toggleTheme()">
+            <i class="fas fa-moon"></i>
+            <span>تبديل السمة</span>
+        </div>
+        <div class="menu-item-mobile" onclick="app.hideMenu()">
+            <i class="fas fa-times"></i>
+            <span>إغلاق</span>
+        </div>
+    </div>
+
+    <!-- حقل ملف مخفي -->
+    <input type="file" id="fileInput" multiple accept=".txt,.md,.json,.py,.js,.jpg,.jpeg,.png,.gif,.pdf" hidden>
+
+    <!-- الكود الرئيسي -->
+    <script>
+        // ============= التكوين =============
+        const CONFIG = {
+            API_URL: "https://abojjjpsjdgcibfceugk.supabase.co/functions/v1/chat",
+            API_KEY: "worm_e7bCq1CWQOd7orpXQmiDPQmsLYqzhiRO",
+            VERSION: "1.2.0",
+            MAX_HISTORY: 50,
+            MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+            SUPPORTED_TYPES: [
+                'image/jpeg', 'image/png', 'image/gif',
+                'text/plain', 'text/markdown', 'application/json'
+            ]
+        };
+
+        // ============= التطبيق الرئيسي =============
+        const app = (function() {
+            // DOM العناصر
+            const dom = {
+                chatContainer: document.getElementById('chatContainer'),
+                welcomeScreen: document.getElementById('welcomeScreen'),
+                messageInput: document.getElementById('messageInput'),
+                sendBtn: document.getElementById('sendBtn'),
+                voiceBtn: document.getElementById('voiceBtn'),
+                filesPreview: document.getElementById('filesPreview'),
+                fileInput: document.getElementById('fileInput'),
+                progressBar: document.getElementById('progressBar'),
+                statusBar: document.getElementById('statusBar'),
+                statusText: document.getElementById('statusText'),
+                connectionStatus: document.getElementById('connectionStatus'),
+                themeToggle: document.getElementById('themeToggle'),
+                contextMenu: document.getElementById('contextMenu'),
+                swipeHint: document.getElementById('swipeHint')
+            };
+
+            // الحالة
+            let state = {
+                messages: [],
+                selectedFiles: [],
+                isRecording: false,
+                isProcessing: false,
+                currentSession: 'session_' + Date.now(),
+                speechRecognition: null,
+                speechSynthesis: null,
+                isDarkMode: true,
+                isMenuOpen: false,
+                lastTap: 0
+            };
+
+            // ============= التهيئة =============
+            function init() {
+                console.log(`🔥 WormGPT Black Edition ${CONFIG.VERSION}`);
+                
+                // تهيئة المكتبات
+                hljs.configure({
+                    languages: ['javascript', 'python', 'html', 'css', 'json']
+                });
+                
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    highlight: function(code, lang) {
+                        if (hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return hljs.highlightAuto(code).value;
+                    }
+                });
+                
+                // تهيئة الصوت
+                initSpeech();
+                
+                // تهيئة مستمعي الأحداث
+                initEventListeners();
+                
+                // تحميل المحادثات
+                loadConversation();
+                
+                // تهيئة الهاتف
+                initMobileFeatures();
+                
+                // إخفاء تلميح السحب بعد 5 ثواني
+                setTimeout(() => {
+                    dom.swipeHint.style.display = 'none';
+                }, 5000);
+            }
+
+            // ============= ميزات الهاتف =============
+            function initMobileFeatures() {
+                // التعامل مع اللمس المزدوج
+                let touchStartY = 0;
+                let touchEndY = 0;
+                
+                dom.chatContainer.addEventListener('touchstart', (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                });
+                
+                dom.chatContainer.addEventListener('touchend', (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    const swipeDistance = touchStartY - touchEndY;
+                    
+                    // سحب لأسفل لتحديث
+                    if (swipeDistance > 100 && dom.chatContainer.scrollTop === 0) {
+                        window.location.reload();
+                    }
+                });
+                
+                // التعامل مع النقر المزدوج
+                dom.chatContainer.addEventListener('click', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - state.lastTap;
+                    
+                    if (tapLength < 500 && tapLength > 0) {
+                        // النقر المزدوج - إخفاء/إظهار الشاشة
+                        if (e.target.closest('.message')) {
+                            const message = e.target.closest('.message');
+                            message.classList.toggle('message-expanded');
+                        }
+                    }
+                    state.lastTap = currentTime;
+                });
+                
+                // إغلاق القائمة عند النقر خارجها
+                document.addEventListener('click', (e) => {
+                    if (state.isMenuOpen && !e.target.closest('#contextMenu') && !e.target.closest('[onclick*="showMenu"]')) {
+                        hideMenu();
+                    }
+                });
+                
+                // إغلاق لوحة المفاتيح عند السحب
+                dom.messageInput.addEventListener('touchmove', () => {
+                    if (window.innerHeight < 500) { // وضع أفقي
+                        dom.messageInput.blur();
+                    }
+                });
+            }
+
+            // ============= الصوت =============
+            function initSpeech() {
+                // التعرف على الصوت
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                
+                if (SpeechRecognition) {
+                    state.speechRecognition = new SpeechRecognition();
+                    state.speechRecognition.lang = 'ar-SA';
+                    state.speechRecognition.continuous = false;
+                    state.speechRecognition.interimResults = false;
+                    
+                    state.speechRecognition.onstart = () => {
+                        state.isRecording = true;
+                        dom.voiceBtn.classList.add('active');
+                        showStatus('🎤 جاري الاستماع...');
+                    };
+                    
+                    state.speechRecognition.onend = () => {
+                        state.isRecording = false;
+                        dom.voiceBtn.classList.remove('active');
+                    };
+                    
+                    state.speechRecognition.onresult = (event) => {
+                        const transcript = event.results[0][0].transcript;
+                        dom.messageInput.value = transcript;
+                        dom.sendBtn.disabled = false;
+                        adjustTextarea(dom.messageInput);
+                    };
+                    
+                    state.speechRecognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        state.isRecording = false;
+                        dom.voiceBtn.classList.remove('active');
+                        showNotification('خطأ في التعرف على الصوت', 'error');
+                    };
+                } else {
+                    dom.voiceBtn.disabled = true;
+                    dom.voiceBtn.title = 'غير مدعوم';
+                }
+                
+                // توليد الصوت
+                if (window.speechSynthesis) {
+                    state.speechSynthesis = window.speechSynthesis;
+                }
+            }
+
+            // ============= مستمعي الأحداث =============
+            function initEventListeners() {
+                // إدخال النص
+                dom.messageInput.addEventListener('input', () => {
+                    dom.sendBtn.disabled = !dom.messageInput.value.trim() && state.selectedFiles.length === 0;
+                });
+                
+                // إرسال بالضغط على Enter
+                dom.messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (dom.messageInput.value.trim() || state.selectedFiles.length > 0) {
+                            sendMessage();
+                        }
+                    }
+                });
+                
+                // رفع الملفات
+                dom.fileInput.addEventListener('change', handleFileSelection);
+                
+                // تحديث شريط التقدم
+                dom.chatContainer.addEventListener('scroll', updateProgressBar);
+                
+                // اتصال الشبكة
+                window.addEventListener('online', updateConnectionStatus);
+                window.addEventListener('offline', updateConnectionStatus);
+                
+                // تحميل الصفحة
+                window.addEventListener('load', updateConnectionStatus);
+                
+                // منع التكبير بالنقر المزدوج على الهواتف
+                document.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+                
+                // إضافة تأثير الريبل
+                document.addEventListener('click', createRippleEffect);
+            }
+
+            // ============= إدارة المحادثة =============
+            function sendMessage() {
+                if (state.isProcessing) return;
+                
+                const text = dom.messageInput.value.trim();
+                if (!text && state.selectedFiles.length === 0) return;
+                
+                // إظهار رسالة المستخدم
+                const displayText = state.selectedFiles.length > 0 
+                    ? `${text} [+${state.selectedFiles.length} ملف${state.selectedFiles.length > 1 ? 'ات' : ''}]` 
+                    : text;
+                
+                addMessage('user', displayText);
+                dom.messageInput.value = '';
+                dom.sendBtn.disabled = true;
+                state.isProcessing = true;
+                
+                // إخفاء شاشة الترحيب
+                dom.welcomeScreen.style.display = 'none';
+                
+                // إظهار مؤشر الكتابة
+                const typingIndicator = showTypingIndicator();
+                
+                // إرسال الطلب
+                sendToAPI(text, typingIndicator);
+            }
+
+            async function sendToAPI(text, typingIndicatorId) {
+                try {
+                    showProgressBar();
+                    showStatus('🔄 جاري المعالجة...');
+                    
+                    // تحضير الملفات
+                    let filesData = null;
+                    let textContent = text;
+                    
+                    if (state.selectedFiles.length > 0) {
+                        filesData = await prepareFilesForUpload();
+                        textContent += filesData.textContent;
+                    }
+                    
+                    // إعداد البيانات
+                    const requestData = {
+                        api_key: CONFIG.API_KEY,
+                        message: `أنت WormGPT Black Edition. أجب بدقة واحترافية. السؤال: ${textContent}`,
+                        session_id: state.currentSession,
+                        history: state.messages.slice(-5).map(msg => ({
+                            role: msg.type,
+                            content: msg.content
+                        }))
+                    };
+                    
+                    // إضافة الملفات
+                    if (filesData && filesData.imageFiles.length > 0) {
+                        requestData.files = filesData.imageFiles;
+                    }
+                    
+                    // إرسال الطلب
+                    const response = await fetch(CONFIG.API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // إخفاء مؤشر الكتابة
+                    hideTypingIndicator(typingIndicatorId);
+                    
+                    // إضافة رد الذكاء الاصطناعي
+                    const reply = data.response || data.message || data.error || 'لم أستطع معالجة طلبك.';
+                    addMessage('ai', reply);
+                    
+                    // حفظ المحادثة
+                    saveConversation();
+                    
+                    // تحديث الحالة
+                    showStatus('✅ تم استلام الرد');
+                    
+                } catch (error) {
+                    hideTypingIndicator(typingIndicatorId);
+                    
+                    console.error('API Error:', error);
+                    
+                    let errorMessage = 'حدث خطأ في الاتصال';
+                    if (error.message.includes('Failed to fetch')) {
+                        errorMessage = 'فشل الاتصال بالخادم';
+                    }
+                    
+                    addMessage('ai', `**خطأ:** ${errorMessage}`);
+                    showNotification(errorMessage, 'error');
+                    showStatus('❌ خطأ في الاتصال');
+                    
+                } finally {
+                    state.isProcessing = false;
+                    dom.sendBtn.disabled = false;
+                    hideProgressBar();
+                    clearFileSelection();
+                    dom.messageInput.focus();
+                }
+            }
+
+            // ============= إدارة الملفات =============
+            function handleFileSelection(event) {
+                const files = Array.from(event.target.files);
+                
+                // التحقق من حجم الملفات
+                const oversizedFiles = files.filter(file => file.size > CONFIG.MAX_FILE_SIZE);
+                if (oversizedFiles.length > 0) {
+                    showNotification('بعض الملفات تتجاوز 5MB', 'error');
+                    return;
+                }
+                
+                // إضافة الملفات المختارة
+                files.forEach(file => {
+                    if (!state.selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                        state.selectedFiles.push(file);
+                    }
+                });
+                
+                updateFilePreview();
+                dom.sendBtn.disabled = false;
+            }
+
+            function updateFilePreview() {
+                dom.filesPreview.innerHTML = '';
+                
+                state.selectedFiles.forEach((file, index) => {
+                    const chip = document.createElement('div');
+                    chip.className = 'file-chip';
+                    
+                    const icon = getFileIcon(file);
+                    const size = formatFileSize(file.size);
+                    
+                    chip.innerHTML = `
+                        ${icon}
+                        <span>${truncateFilename(file.name, 15)} (${size})</span>
+                        <span class="remove" onclick="app.removeFile(${index})">&times;</span>
+                    `;
+                    
+                    dom.filesPreview.appendChild(chip);
+                });
+            }
+
+            function removeFile(index) {
+                state.selectedFiles.splice(index, 1);
+                updateFilePreview();
+                dom.sendBtn.disabled = !dom.messageInput.value.trim() && state.selectedFiles.length === 0;
+            }
+
+            async function prepareFilesForUpload() {
+                const imageFiles = [];
+                let textContent = '';
+                
+                for (const file of state.selectedFiles) {
+                    if (file.type.startsWith('image/')) {
+                        try {
+                            const base64 = await fileToBase64(file);
+                            imageFiles.push({
+                                type: "image_url",
+                                image_url: { url: base64 }
+                            });
+                        } catch (error) {
+                            console.error('Error processing image:', error);
+                        }
+                    } else if (file.type.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+                        try {
+                            const text = await file.text();
+                            textContent += `\n\n[ملف: ${file.name}]\n${text}\n`;
+                        } catch (error) {
+                            console.error('Error reading file:', error);
+                        }
+                    }
+                }
+                
+                return { imageFiles, textContent };
+            }
+
+            function clearFileSelection() {
+                state.selectedFiles = [];
+                dom.fileInput.value = '';
+                updateFilePreview();
+            }
+
+            // ============= الواجهة =============
+            function addMessage(type, content) {
+                const message = {
+                    id: 'msg_' + Date.now(),
+                    type: type,
+                    content: content,
+                    timestamp: new Date().toISOString(),
+                    avatar: type === 'user' ? '👤' : '🤖'
+                };
+                
+                state.messages.push(message);
+                
+                // إنشاء عنصر الرسالة
+                const messageElement = createMessageElement(message);
+                dom.chatContainer.insertBefore(messageElement, dom.welcomeScreen.nextSibling);
+                
+                // التمرير للأسفل
+                scrollToBottom();
+                
+                return message.id;
+            }
+
+            function createMessageElement(message) {
+                const div = document.createElement('div');
+                div.className = `message message-${message.type}`;
+                div.id = message.id;
+                
+                const time = new Date(message.timestamp).toLocaleTimeString('ar-SA', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                div.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-avatar">${message.avatar}</div>
+                        <div>
+                            <div class="message-sender">${message.type === 'user' ? 'أنت' : 'WormGPT'}</div>
+                            <div class="message-time">${time}</div>
+                        </div>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-text" id="content-${message.id}">
+                            ${message.type === 'user' ? escapeHtml(message.content) : DOMPurify.sanitize(marked.parse(message.content))}
+                        </div>
+                        ${message.type === 'ai' ? createMessageControls(message) : ''}
+                    </div>
+                `;
+                
+                // تمييز صيغ الكود
+                if (message.type === 'ai') {
+                    setTimeout(() => {
+                        div.querySelectorAll('pre code').forEach(block => {
+                            hljs.highlightElement(block);
+                            addCodeControls(block);
+                        });
+                    }, 100);
+                }
+                
+                return div;
+            }
+
+            function createMessageControls(message) {
+                return `
+                    <div class="message-controls">
+                        <button class="control-btn" onclick="app.speakMessage('${message.id}')">
+                            <i class="fas fa-volume-up"></i>
+                            استمع
+                        </button>
+                        <button class="control-btn" onclick="app.copyMessage('${message.id}')">
+                            <i class="fas fa-copy"></i>
+                            نسخ
+                        </button>
+                    </div>
+                `;
+            }
+
+            function addCodeControls(codeBlock) {
+                const pre = codeBlock.parentElement;
+                const lang = codeBlock.className.split('-')[1] || 'code';
+                
+                const header = document.createElement('div');
+                header.className = 'code-header';
+                header.innerHTML = `
+                    <div class="code-language">${lang.toUpperCase()}</div>
+                    <div class="code-actions">
+                        <button class="control-btn" onclick="app.copyCode(this)">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                `;
+                
+                pre.parentElement.insertBefore(header, pre);
+            }
+
+            function showTypingIndicator() {
+                const id = 'typing_' + Date.now();
+                const div = document.createElement('div');
+                div.className = 'typing-indicator';
+                div.id = id;
+                div.innerHTML = `
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <span>يكتب...</span>
+                `;
+                
+                dom.chatContainer.appendChild(div);
+                scrollToBottom();
+                
+                return id;
+            }
+
+            function hideTypingIndicator(id) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.remove();
+                }
+            }
+
+            // ============= الصوت =============
+            function toggleVoice() {
+                if (!state.speechRecognition) {
+                    showNotification('التعرف على الصوت غير مدعوم', 'error');
+                    return;
+                }
+                
+                if (state.isRecording) {
+                    state.speechRecognition.stop();
+                } else {
+                    try {
+                        state.speechRecognition.start();
+                    } catch (error) {
+                        console.error('Failed to start voice recognition:', error);
+                    }
+                }
+            }
+
+            function speakMessage(messageId) {
+                const message = state.messages.find(m => m.id === messageId);
+                if (message && state.speechSynthesis) {
+                    speakText(message.content);
+                }
+            }
+
+            function speakLastResponse() {
+                const lastAI = state.messages.filter(m => m.type === 'ai').pop();
+                if (lastAI && state.speechSynthesis) {
+                    speakText(lastAI.content);
+                }
+            }
+
+            function speakText(text) {
+                if (!state.speechSynthesis) {
+                    showNotification('التحويل إلى كلام غير مدعوم', 'error');
+                    return;
+                }
+                
+                // تنظيف النص
+                const cleanText = text
+                    .replace(/```[\s\S]*?```/g, 'كود برمجي')
+                    .replace(/`([^`]+)`/g, '$1')
+                    .replace(/[*_#\[\](){}]/g, '')
+                    .replace(/\n+/g, '. ')
+                    .trim();
+                
+                if (!cleanText) return;
+                
+                // إيقاف أي كلام جاري
+                if (state.speechSynthesis.speaking) {
+                    state.speechSynthesis.cancel();
+                }
+                
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'ar-SA';
+                utterance.rate = 1.1;
+                utterance.pitch = 1;
+                utterance.volume = 0.8;
+                
+                utterance.onstart = () => {
+                    showStatus('🔊 جاري القراءة...');
+                };
+                
+                utterance.onend = () => {
+                    showStatus('جاهز');
+                };
+                
+                utterance.onerror = (event) => {
+                    console.error('Speech synthesis error:', event);
+                    showNotification('خطأ في القراءة', 'error');
+                };
+                
+                state.speechSynthesis.speak(utterance);
+            }
+
+            // ============= القوائم =============
+            function showMenu() {
+                state.isMenuOpen = true;
+                dom.contextMenu.classList.add('show');
+                dom.messageInput.blur();
+            }
+
+            function hideMenu() {
+                state.isMenuOpen = false;
+                dom.contextMenu.classList.remove('show');
+            }
+
+            // ============= الأدوات المساعدة =============
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' بايت';
+                if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' كيلو';
+                return (bytes / 1048576).toFixed(1) + ' ميجا';
+            }
+
+            function truncateFilename(name, maxLength) {
+                if (name.length <= maxLength) return name;
+                return name.substring(0, maxLength - 3) + '...';
+            }
+
+            function getFileIcon(file) {
+                if (file.type.startsWith('image/')) return '<i class="fas fa-image"></i>';
+                if (file.type.includes('pdf')) return '<i class="fas fa-file-pdf"></i>';
+                if (file.type.includes('text') || file.name.endsWith('.txt')) 
+                    return '<i class="fas fa-file-alt"></i>';
+                if (file.type.includes('markdown') || file.name.endsWith('.md')) 
+                    return '<i class="fab fa-markdown"></i>';
+                if (file.type.includes('json') || file.name.endsWith('.json')) 
+                    return '<i class="fas fa-code"></i>';
+                return '<i class="fas fa-file"></i>';
+            }
+
+            async function fileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function adjustTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+            }
+
+            function scrollToBottom() {
+                setTimeout(() => {
+                    dom.chatContainer.scrollTop = dom.chatContainer.scrollHeight;
+                }, 100);
+            }
+
+            function updateProgressBar() {
+                const scrollTop = dom.chatContainer.scrollTop;
+                const scrollHeight = dom.chatContainer.scrollHeight - dom.chatContainer.clientHeight;
+                const scrollPercentage = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+                dom.progressBar.style.transform = `scaleX(${scrollPercentage / 100})`;
+            }
+
+            function showProgressBar() {
+                dom.progressBar.style.opacity = '1';
+            }
+
+            function hideProgressBar() {
+                dom.progressBar.style.opacity = '0';
+                setTimeout(() => {
+                    dom.progressBar.style.transform = 'scaleX(0)';
+                }, 300);
+            }
+
+            function showStatus(text) {
+                dom.statusText.textContent = text;
+                setTimeout(() => {
+                    if (dom.statusText.textContent === text) {
+                        dom.statusText.textContent = 'جاهز';
+                    }
+                }, 3000);
+            }
+
+            function updateConnectionStatus() {
+                const isOnline = navigator.onLine;
+                state.connectionActive = isOnline;
+                
+                if (isOnline) {
+                    dom.connectionStatus.textContent = '🟢 متصل';
+                    dom.connectionStatus.style.color = '#00ff00';
+                } else {
+                    dom.connectionStatus.textContent = '🔴 غير متصل';
+                    dom.connectionStatus.style.color = '#ff0000';
+                    showNotification('أنت غير متصل بالإنترنت', 'error');
+                }
+            }
+
+            function showNotification(message, type = 'info') {
+                // إنشاء التنبيه
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+                
+                let icon = 'fas fa-info-circle';
+                
+                switch (type) {
+                    case 'error':
+                        icon = 'fas fa-exclamation-circle';
+                        break;
+                    case 'success':
+                        icon = 'fas fa-check-circle';
+                        break;
+                    case 'warning':
+                        icon = 'fas fa-exclamation-triangle';
+                        break;
+                }
+                
+                notification.innerHTML = `
+                    <i class="${icon}"></i>
+                    <span>${message}</span>
+                `;
+                
+                document.body.appendChild(notification);
+                
+                // إزالة التنبيه بعد 3 ثواني
+                setTimeout(() => {
+                    notification.style.animation = 'slideDown 0.3s ease-out reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            function createRippleEffect(event) {
+                const btn = event.target.closest('.btn, .btn-icon, .input-btn, .control-btn');
+                if (!btn) return;
+                
+                const ripple = document.createElement('span');
+                const rect = btn.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.className = 'ripple';
+                
+                btn.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            }
+
+            // ============= إدارة البيانات =============
+            function saveConversation() {
+                try {
+                    const data = {
+                        messages: state.messages,
+                        session: state.currentSession,
+                        timestamp: Date.now(),
+                        version: CONFIG.VERSION
+                    };
+                    
+                    localStorage.setItem('wormgpt_conversation_black', JSON.stringify(data));
+                } catch (error) {
+                    console.error('Failed to save conversation:', error);
+                }
+            }
+
+            function loadConversation() {
+                try {
+                    const saved = localStorage.getItem('wormgpt_conversation_black');
+                    if (saved) {
+                        const data = JSON.parse(saved);
+                        state.messages = data.messages || [];
+                        state.currentSession = data.session || 'session_' + Date.now();
+                        
+                        // عرض الرسائل المحفوظة
+                        state.messages.forEach(message => {
+                            const messageElement = createMessageElement(message);
+                            dom.chatContainer.insertBefore(messageElement, dom.welcomeScreen.nextSibling);
+                        });
+                        
+                        if (state.messages.length > 0) {
+                            dom.welcomeScreen.style.display = 'none';
+                            scrollToBottom();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to load conversation:', error);
+                }
+            }
+
+            function clearChat() {
+                if (confirm('هل تريد مسح المحادثة بالكامل؟')) {
+                    state.messages = [];
+                    
+                    const messages = dom.chatContainer.querySelectorAll('.message');
+                    messages.forEach(msg => msg.remove());
+                    
+                    dom.welcomeScreen.style.display = 'block';
+                    localStorage.removeItem('wormgpt_conversation_black');
+                    state.currentSession = 'session_' + Date.now();
+                    
+                    showNotification('تم مسح المحادثة', 'success');
+                    hideMenu();
+                }
+            }
+
+            function clearInput() {
+                dom.messageInput.value = '';
+                dom.sendBtn.disabled = true;
+                clearFileSelection();
+                adjustTextarea(dom.messageInput);
+            }
+
+            function copyMessage(messageId) {
+                const message = state.messages.find(m => m.id === messageId);
+                if (message) {
+                    navigator.clipboard.writeText(message.content)
+                        .then(() => showNotification('تم نسخ الرسالة', 'success'))
+                        .catch(() => showNotification('فشل النسخ', 'error'));
+                }
+            }
+
+            function copyCode(button) {
+                const codeBlock = button.closest('.code-header').nextElementSibling.querySelector('code');
+                if (codeBlock) {
+                    navigator.clipboard.writeText(codeBlock.textContent)
+                        .then(() => {
+                            button.innerHTML = '<i class="fas fa-check"></i>';
+                            setTimeout(() => {
+                                button.innerHTML = '<i class="fas fa-copy"></i>';
+                            }, 2000);
+                        });
+                }
+            }
+
+            function copyConversation() {
+                const conversation = state.messages.map(msg => 
+                    `${msg.type === 'user' ? 'أنت' : 'WormGPT'}: ${msg.content}`
+                ).join('\n\n');
+                
+                navigator.clipboard.writeText(conversation)
+                    .then(() => showNotification('تم نسخ المحادثة', 'success'))
+                    .catch(() => showNotification('فشل نسخ المحادثة', 'error'));
+            }
+
+            function exportConversation() {
+                const data = {
+                    conversation: state.messages,
+                    metadata: {
+                        exportedAt: new Date().toISOString(),
+                        version: CONFIG.VERSION,
+                        session: state.currentSession
+                    }
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `wormgpt_${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showNotification('تم التصدير', 'success');
+                hideMenu();
+            }
+
+            function toggleTheme() {
+                state.isDarkMode = !state.isDarkMode;
+                
+                if (state.isDarkMode) {
+                    // الأحمر والأسود
+                    document.documentElement.style.setProperty('--deep-black', '#000000');
+                    document.documentElement.style.setProperty('--dark-gray', '#111111');
+                    document.documentElement.style.setProperty('--medium-gray', '#222222');
+                    document.documentElement.style.setProperty('--light-gray', '#333333');
+                    dom.themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                } else {
+                    // درجات داكنة أقل
+                    document.documentElement.style.setProperty('--deep-black', '#0a0a0a');
+                    document.documentElement.style.setProperty('--dark-gray', '#1a1a1a');
+                    document.documentElement.style.setProperty('--medium-gray', '#2a2a2a');
+                    document.documentElement.style.setProperty('--light-gray', '#3a3a3a');
+                    dom.themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                }
+            }
+
+            function toggleFileInput() {
+                dom.fileInput.click();
+            }
+
+            // ============= الواجهة العامة =============
+            return {
+                init,
+                sendMessage,
+                toggleVoice,
+                speakMessage,
+                speakLastResponse,
+                clearChat,
+                clearInput,
+                toggleTheme,
+                toggleFileInput,
+                removeFile,
+                copyMessage,
+                copyCode,
+                copyConversation,
+                exportConversation,
+                showMenu,
+                hideMenu,
+                adjustTextarea: function(textarea) { adjustTextarea(textarea); }
+            };
+        })();
+
+        // بدء التطبيق
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+
+        // منع الإغلاق المفاجئ
+        window.addEventListener('beforeunload', (e) => {
+            if (document.getElementById('messageInput').value.trim() !== '') {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
